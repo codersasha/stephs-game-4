@@ -2337,12 +2337,146 @@ function showCutscene(cutsceneData, callback) {
       cutsceneCamera.position.set(0, 5, 12);
       cutsceneCamera.lookAt(0, 3, -5);
       
-    } else if (type === 'house_interior') {
+    } else if (type === 'house_interior' || type === 'family_scene') {
       cutsceneScene.background = new THREE.Color(0xFFF8E7); // Warm interior
+      
+      // Floor with planks
+      const floorBase = new THREE.Mesh(
+        new THREE.PlaneGeometry(20, 20),
+        new THREE.MeshStandardMaterial({ color: 0xB8860B })
+      );
+      floorBase.rotation.x = -Math.PI / 2;
+      cutsceneScene.add(floorBase);
+      
+      // Walls
+      const wallMat = new THREE.MeshStandardMaterial({ color: 0xFFF8DC });
+      const backWall = new THREE.Mesh(new THREE.PlaneGeometry(20, 10), wallMat);
+      backWall.position.set(0, 5, -9);
+      cutsceneScene.add(backWall);
+      
+      const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(18, 10), wallMat);
+      leftWall.rotation.y = Math.PI / 2;
+      leftWall.position.set(-10, 5, 0);
+      cutsceneScene.add(leftWall);
+      
+      const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(18, 10), wallMat);
+      rightWall.rotation.y = -Math.PI / 2;
+      rightWall.position.set(10, 5, 0);
+      cutsceneScene.add(rightWall);
+      
+      // Couch - bigger and nicer
+      const couchMat = new THREE.MeshStandardMaterial({ color: 0x4A2C2A, roughness: 0.9 });
+      const couch = new THREE.Mesh(new THREE.BoxGeometry(6, 1, 2.5), couchMat);
+      couch.position.set(-3, 0.5, -6);
+      cutsceneScene.add(couch);
+      const couchBack = new THREE.Mesh(new THREE.BoxGeometry(6, 2, 0.4), couchMat);
+      couchBack.position.set(-3, 1.5, -7);
+      cutsceneScene.add(couchBack);
+      const couchArmL = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.2, 2.5), couchMat);
+      couchArmL.position.set(-5.8, 0.8, -6);
+      cutsceneScene.add(couchArmL);
+      const couchArmR = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.2, 2.5), couchMat);
+      couchArmR.position.set(-0.2, 0.8, -6);
+      cutsceneScene.add(couchArmR);
+      
+      // Cushions
+      const cushionMat = new THREE.MeshStandardMaterial({ color: 0x5D3A3A, roughness: 0.95 });
+      for (let i = 0; i < 3; i++) {
+        const cushion = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.3, 1.8), cushionMat);
+        cushion.position.set(-4.5 + i * 2, 1.15, -5.8);
+        cutsceneScene.add(cushion);
+      }
+      
+      // Cat basket - detailed
+      const basketMat = new THREE.MeshStandardMaterial({ color: 0x8B7355, roughness: 0.9 });
+      const basketBase = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.4, 0.5, 24), basketMat);
+      basketBase.position.set(5, 0.25, -4);
+      cutsceneScene.add(basketBase);
+      const basketRim = new THREE.Mesh(new THREE.TorusGeometry(1.3, 0.12, 8, 24), basketMat);
+      basketRim.rotation.x = Math.PI / 2;
+      basketRim.position.set(5, 0.5, -4);
+      cutsceneScene.add(basketRim);
+      const basketCushion = new THREE.Mesh(
+        new THREE.CylinderGeometry(1, 1, 0.25, 24),
+        new THREE.MeshStandardMaterial({ color: 0xFFF5EE })
+      );
+      basketCushion.position.set(5, 0.35, -4);
+      cutsceneScene.add(basketCushion);
+      
+      // Windows with light
+      const winMat = new THREE.MeshBasicMaterial({ color: 0x87CEEB });
+      const window1 = new THREE.Mesh(new THREE.PlaneGeometry(3, 3), winMat);
+      window1.position.set(-4, 5, -8.9);
+      cutsceneScene.add(window1);
+      const window2 = new THREE.Mesh(new THREE.PlaneGeometry(3, 3), winMat);
+      window2.position.set(4, 5, -8.9);
+      cutsceneScene.add(window2);
+      
+      // Rug
+      const rug = new THREE.Mesh(
+        new THREE.PlaneGeometry(8, 6),
+        new THREE.MeshStandardMaterial({ color: 0x8B0000, roughness: 1 })
+      );
+      rug.rotation.x = -Math.PI / 2;
+      rug.position.set(0, 0.01, -2);
+      cutsceneScene.add(rug);
+      
+      // Coffee table
+      const tableMat = new THREE.MeshStandardMaterial({ color: 0x3D2314 });
+      const tableTop = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.15, 1.5), tableMat);
+      tableTop.position.set(0, 0.8, -2);
+      cutsceneScene.add(tableTop);
+      
+      // If it's a family scene, add ALL the cats!
+      if (type === 'family_scene') {
+        // Quince (mother) resting on the couch
+        const quince = createCutsceneCat(0xFFE4B5, -3, -5.5, 0x90EE90);
+        quince.position.y = 1.2;
+        quince.rotation.y = Math.PI * 0.1;
+        cutsceneScene.add(quince);
+        
+        // Socks (gray tabby) - playing on the floor
+        const socks = createCutsceneCat(0x555555, -1, -1, 0xFFD700);
+        socks.rotation.y = -Math.PI / 4;
+        cutsceneScene.add(socks);
+        
+        // Ruby (brown/ginger) - near the basket
+        const ruby = createCutsceneCat(0x8B4513, 3, -2, 0x90EE90);
+        ruby.rotation.y = Math.PI / 3;
+        cutsceneScene.add(ruby);
+        
+        // Tiny (black with white paw) - YOU! Near the basket
+        const tiny = createCutsceneCat(0x1a1a1a, 5, -3, 0x87CEEB);
+        tiny.rotation.y = -Math.PI / 2;
+        // Add white paw
+        const whitePaw = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.08, 0.1, 0.2, 8),
+          new THREE.MeshStandardMaterial({ color: 0xFFFFF0 })
+        );
+        whitePaw.position.set(-0.2, 0.1, 0.25);
+        tiny.add(whitePaw);
+        cutsceneScene.add(tiny);
+        
+        // Camera showing the whole family
+        cutsceneCamera.position.set(1, 4, 8);
+        cutsceneCamera.lookAt(0, 1, -3);
+      } else {
+        cutsceneCamera.position.set(0, 4, 6);
+        cutsceneCamera.lookAt(0, 1, -3);
+      }
+      
+      // Warm lighting
+      const warmLight = new THREE.PointLight(0xFFE4B5, 0.5, 15);
+      warmLight.position.set(0, 6, -2);
+      cutsceneScene.add(warmLight);
+      
+    } else if (type === 'hide_and_seek') {
+      // Special scene for hide and seek
+      cutsceneScene.background = new THREE.Color(0xFFF8E7);
       
       // Floor
       const floor = new THREE.Mesh(
-        new THREE.PlaneGeometry(15, 15),
+        new THREE.PlaneGeometry(20, 20),
         new THREE.MeshStandardMaterial({ color: 0xB8860B })
       );
       floor.rotation.x = -Math.PI / 2;
@@ -2350,37 +2484,44 @@ function showCutscene(cutsceneData, callback) {
       
       // Walls
       const wallMat = new THREE.MeshStandardMaterial({ color: 0xFFF8DC });
-      const backWall = new THREE.Mesh(new THREE.PlaneGeometry(15, 8), wallMat);
-      backWall.position.set(0, 4, -7);
+      const backWall = new THREE.Mesh(new THREE.PlaneGeometry(20, 10), wallMat);
+      backWall.position.set(0, 5, -9);
       cutsceneScene.add(backWall);
       
-      // Couch
-      const couchMat = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
-      const couch = new THREE.Mesh(new THREE.BoxGeometry(5, 1, 2), couchMat);
-      couch.position.set(-2, 0.5, -4);
+      // Couch (hiding spot)
+      const couchMat = new THREE.MeshStandardMaterial({ color: 0x4A2C2A });
+      const couch = new THREE.Mesh(new THREE.BoxGeometry(6, 1, 2.5), couchMat);
+      couch.position.set(-4, 0.5, -6);
       cutsceneScene.add(couch);
-      const couchBack = new THREE.Mesh(new THREE.BoxGeometry(5, 1.5, 0.3), couchMat);
-      couchBack.position.set(-2, 1.25, -4.85);
+      const couchBack = new THREE.Mesh(new THREE.BoxGeometry(6, 2, 0.4), couchMat);
+      couchBack.position.set(-4, 1.5, -7);
       cutsceneScene.add(couchBack);
       
-      // Cat basket
-      const basket = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.8, 1, 0.4, 24),
-        new THREE.MeshStandardMaterial({ color: 0x8B7355 })
+      // Tiny hiding by the couch edge - YOU!
+      const tiny = createCutsceneCat(0x1a1a1a, -6.5, -5, 0x87CEEB);
+      tiny.scale.set(0.8, 0.8, 0.8); // Smaller because kit
+      tiny.rotation.y = Math.PI / 4;
+      const whitePaw = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.08, 0.1, 0.2, 8),
+        new THREE.MeshStandardMaterial({ color: 0xFFFFF0 })
       );
-      basket.position.set(3, 0.2, -3);
-      cutsceneScene.add(basket);
+      whitePaw.position.set(-0.2, 0.1, 0.25);
+      tiny.add(whitePaw);
+      cutsceneScene.add(tiny);
       
-      // Window with light
-      const window1 = new THREE.Mesh(
-        new THREE.PlaneGeometry(3, 2.5),
-        new THREE.MeshBasicMaterial({ color: 0x87CEEB })
-      );
-      window1.position.set(0, 5, -6.9);
-      cutsceneScene.add(window1);
+      // Socks counting in the distance
+      const socks = createCutsceneCat(0x555555, 4, -2, 0xFFD700);
+      socks.rotation.y = Math.PI; // Facing away (counting)
+      cutsceneScene.add(socks);
       
-      cutsceneCamera.position.set(0, 4, 6);
-      cutsceneCamera.lookAt(0, 1, -3);
+      // Camera from Tiny's perspective, looking at hiding spot
+      cutsceneCamera.position.set(-5, 2, 0);
+      cutsceneCamera.lookAt(-6.5, 0.5, -5);
+      
+      // Warm lighting
+      const warmLight = new THREE.PointLight(0xFFE4B5, 0.6, 15);
+      warmLight.position.set(0, 6, -2);
+      cutsceneScene.add(warmLight);
     }
   }
   

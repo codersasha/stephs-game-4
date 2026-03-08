@@ -126,47 +126,43 @@ const OPENING_CUTSCENE = [
   },
   {
     type: "scene", 
-    text: "Inside, a family of cats lives happily.",
-    background: "house_interior"
+    text: "Inside, a family of cats lives happily together.",
+    background: "family_scene"
   },
   {
     type: "character_intro",
     name: "Quince",
     title: "The Mother",
-    description: "A gentle cream-colored she-cat with loving green eyes",
-    icon: "🐱"
+    description: "A gentle cream-colored she-cat with loving green eyes. She watches over her kits with warmth and care."
   },
   {
     type: "character_intro",
     name: "Socks",
     title: "The Brother",
-    description: "A gray tom with white paws - confident and bossy",
-    icon: "🐱"
+    description: "A gray tom with white paws. He's confident, bossy, and always wants to be in charge of the games."
   },
   {
     type: "character_intro",
     name: "Ruby", 
     title: "The Sister",
-    description: "A brown tabby she-cat - follows her brother's lead",
-    icon: "🐱"
+    description: "A brown tabby she-cat. She follows her brother's lead and often joins him in teasing."
   },
   {
     type: "character_intro",
     name: "Tiny",
     title: "You",
-    description: "The smallest kit - black with one white paw and ice-blue eyes",
-    icon: "🐱",
+    description: "The smallest kit of the litter. Black fur with one white paw and striking ice-blue eyes. That's you!",
     isPlayer: true
   },
   {
     type: "scene",
     text: "Today, the kits are playing hide and seek...",
-    background: "house_interior"
+    background: "family_scene"
   },
   {
     type: "scene",
-    text: "You're hiding by the edge of the big soft sitting-thing the Twolegs use.",
-    background: "house_interior"
+    text: "Socks is counting while you and Ruby hide. You've found a perfect spot by the couch!",
+    background: "hide_and_seek"
   }
 ];
 
