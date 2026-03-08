@@ -126,7 +126,7 @@ const OPENING_CUTSCENE = [
   },
   {
     type: "scene", 
-    text: "Inside, a family of cats lives happily together.",
+    text: "Inside, a family of kittypets lives with their Twolegs.",
     background: "family_scene"
   },
   {
@@ -139,13 +139,13 @@ const OPENING_CUTSCENE = [
     type: "character_intro",
     name: "Socks",
     title: "The Brother",
-    description: "A gray tom with white paws. He's confident, bossy, and always wants to be in charge of the games."
+    description: "A gray tom with white paws. He's confident, bossy, and thinks he's better than everyone else."
   },
   {
     type: "character_intro",
     name: "Ruby", 
     title: "The Sister",
-    description: "A brown tabby she-cat. She follows her brother's lead and often joins him in teasing."
+    description: "A brown tabby she-cat. She follows her brother's lead and always agrees with whatever he says."
   },
   {
     type: "character_intro",
@@ -156,13 +156,18 @@ const OPENING_CUTSCENE = [
   },
   {
     type: "scene",
-    text: "Today, the kits are playing hide and seek...",
+    text: "You wake up in your cozy basket, stretching your tiny paws...",
+    background: "house_interior"
+  },
+  {
+    type: "scene",
+    text: "Your brother and sister are already awake, whispering to each other nearby.",
     background: "family_scene"
   },
   {
     type: "scene",
-    text: "Socks is counting while you and Ruby hide. You've found a perfect spot by the couch!",
-    background: "hide_and_seek"
+    text: "Something tells you today is going to be different...",
+    background: "house_interior"
   }
 ];
 
@@ -859,6 +864,108 @@ const SaveManager = {
   }
 };
 
+// Cat dialogues - conversations triggered when approaching cats
+const CAT_DIALOGUES = {
+  // Socks bullies you when you approach
+  socks_bully: {
+    speaker: "Socks",
+    speakerColor: "#888888",
+    lines: [
+      {
+        text: "Well, well, well... look who finally got out of the basket.",
+        choices: null
+      },
+      {
+        text: "You know what Mother said, right? About kittens who don't get chosen?",
+        choices: null
+      },
+      {
+        text: "They get THROWN OUT. Tossed away like garbage!",
+        choices: [
+          { text: "That's not true!", response: "Ha! You're such a kit. Everyone knows it's true.", next: 3 },
+          { text: "Stop being mean...", response: "Mean? I'm just telling you the truth, runt.", next: 3 },
+          { text: "(Stay quiet)", response: "What's wrong? Cat got your tongue? Ha!", next: 3 }
+        ]
+      },
+      {
+        text: "And guess what? Nobody's going to want the SMALLEST one. That's YOU, Tiny!",
+        choices: null
+      },
+      {
+        text: "Ruby and I already have our Twolegs picked out. But you? You're going to get thrown into the forest!",
+        choices: null,
+        onEnd: "socks_bully_done"
+      }
+    ]
+  },
+  
+  // Ruby joins in the bullying
+  ruby_bully: {
+    speaker: "Ruby",
+    speakerColor: "#8B4513",
+    lines: [
+      {
+        text: "Socks is right, you know. You're way too small.",
+        choices: null
+      },
+      {
+        text: "The Twolegs want BIG, STRONG cats. Not... whatever you are.",
+        choices: [
+          { text: "I can be strong too!", response: "Strong? You can barely climb out of the basket!", next: 2 },
+          { text: "Why are you being so mean?", response: "We're just preparing you for the truth.", next: 2 },
+          { text: "(Say nothing)", response: "*Ruby snickers* So quiet. So weak.", next: 2 }
+        ]
+      },
+      {
+        text: "Maybe you should just go hide in the corner. That's where unwanted kits belong!",
+        choices: null
+      },
+      {
+        text: "*Ruby pushes you with her paw* Go on! Into the corner!",
+        choices: null,
+        onEnd: "ruby_bully_done"
+      }
+    ]
+  },
+  
+  // Quince comforts you after the bullying
+  quince_comfort: {
+    speaker: "Quince",
+    speakerColor: "#FFE4B5",
+    lines: [
+      {
+        text: "Oh, my little Tiny... come here, dear.",
+        choices: null
+      },
+      {
+        text: "*Quince wraps her tail around you gently*",
+        choices: null
+      },
+      {
+        text: "Don't listen to your brother and sister. They don't understand.",
+        choices: [
+          { text: "They said I'll be thrown away...", response: "That's nonsense, little one. I would never let that happen.", next: 3 },
+          { text: "Am I really too small?", response: "You are perfect just the way you are, my kit.", next: 3 },
+          { text: "*Snuggle closer to Mother*", response: "*Quince purrs softly and licks your head*", next: 3 }
+        ]
+      },
+      {
+        text: "You have something special inside you, Tiny. I can see it in those ice-blue eyes.",
+        choices: null
+      },
+      {
+        text: "One day, you'll show everyone just how strong you really are. Now rest, little one.",
+        choices: null
+      },
+      {
+        text: "*You feel a little better, but the words of Socks and Ruby still echo in your mind...*",
+        choices: null,
+        onEnd: "quince_comfort_done"
+      }
+    ]
+  }
+};
+
 // Export for game.js
 window.GameData = {
   CHAPTERS,
@@ -867,5 +974,6 @@ window.GameData = {
   BATTLE_CONFIG,
   SoundManager,
   SaveManager,
-  OPENING_CUTSCENE
+  OPENING_CUTSCENE,
+  CAT_DIALOGUES
 };

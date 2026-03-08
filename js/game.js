@@ -15,8 +15,14 @@ const GameState = {
   playerHP: 100,
   enemyHP: 100,
   isLyingDown: false,
-  currentNarrationIndex: 0
+  currentNarrationIndex: 0,
+  talkedTo: {}, // Track who we've talked to
+  storyProgress: 0, // Track story progress in chapter
+  lastTalkedCat: null
 };
+
+// Cat figures in the scene
+let catFigures = [];
 
 // Three.js variables
 let scene, camera, renderer;
@@ -885,9 +891,23 @@ function createTwolegHouse() {
   scene.add(bookshelfGroup);
   
   // === CAT CHARACTERS - High Quality ===
-  createCatFigure(10, 0, -6, 0x555555, 'Socks', true);
-  createCatFigure(3, 0, -6, 0x8B4513, 'Ruby');
-  createCatFigure(-5, 1.15, -9.5, 0xFFE4B5, 'Quince');
+  // Clear previous cats
+  catFigures = [];
+  
+  // Socks - standing near the rug, looking smug
+  const socks = createCatFigure(2, 0, -2, 0x555555, 'Socks', true);
+  socks.rotation.y = Math.PI / 2;
+  catFigures.push(socks);
+  
+  // Ruby - near Socks, following his lead
+  const ruby = createCatFigure(0, 0, -1, 0x8B4513, 'Ruby');
+  ruby.rotation.y = Math.PI / 3;
+  catFigures.push(ruby);
+  
+  // Quince (mother) - resting on the couch
+  const quince = createCatFigure(-5, 1.15, -9.5, 0xFFE4B5, 'Quince');
+  quince.rotation.y = Math.PI / 6;
+  catFigures.push(quince);
   
   // === PREMIUM LIGHTING ===
   scene.background = new THREE.Color(0xFFF8E7);
@@ -2128,10 +2148,169 @@ function handleContinue(e) {
   // Don't continue if clicking a choice button
   if (e && e.target.classList.contains('dialogue-choice')) return;
   
+  // Check if we're in a cat conversation
+  if (currentCatConversation) {
+    advanceCatConversation();
+    return;
+  }
+  
   const currentDialogue = GameData.ALL_DIALOGUE[GameState.dialogueState];
   if (currentDialogue && currentDialogue.choices) return; // Must pick a choice
   
   advanceDialogue();
+}
+
+// Cat conversation system
+let currentCatConversation = null;
+let catConversationLineIndex = 0;
+let catConversationCallback = null;
+
+function showCatDialogue(dialogue, callback) {
+  currentCatConversation = dialogue;
+  catConversationLineIndex = 0;
+  catConversationCallback = callback;
+  GameState.isInDialogue = true;
+  
+  showCatDialogueLine();
+}
+
+function showCatDialogueLine() {
+  if (!currentCatConversation || catConversationLineIndex >= currentCatConversation.lines.length) {
+    endCatConversation();
+    return;
+  }
+  
+  const line = currentCatConversation.lines[catConversationLineIndex];
+  const speaker = currentCatConversation.speaker;
+  const speakerColor = currentCatConversation.speakerColor || '#FFFFFF';
+  
+  // Show dialogue box
+  narrationBox.classList.add('hidden');
+  dialogueBox.classList.remove('hidden');
+  
+  // Set speaker name
+  const speakerNameEl = document.getElementById('dialogue-speaker-name');
+  speakerNameEl.textContent = speaker;
+  speakerNameEl.style.color = speakerColor;
+  
+  // Set text
+  document.getElementById('dialogue-text').textContent = line.text;
+  
+  // Handle choices or continue
+  const choicesContainer = document.getElementById('dialogue-choices');
+  const continueHint = document.getElementById('dialogue-continue');
+  
+  choicesContainer.innerHTML = '';
+  
+  if (line.choices) {
+    continueHint.style.display = 'none';
+    line.choices.forEach((choice) => {
+      const btn = document.createElement('button');
+      btn.className = 'dialogue-choice';
+      btn.textContent = choice.text;
+      btn.addEventListener('click', () => {
+        // Show response
+        if (choice.response) {
+          document.getElementById('dialogue-text').textContent = choice.response;
+          choicesContainer.innerHTML = '';
+          continueHint.style.display = 'block';
+          
+          // Set up to continue to next line after showing response
+          const nextLineIndex = choice.next !== undefined ? choice.next : catConversationLineIndex + 1;
+          
+          setTimeout(() => {
+            catConversationLineIndex = nextLineIndex;
+          }, 100);
+        } else {
+          catConversationLineIndex = choice.next !== undefined ? choice.next : catConversationLineIndex + 1;
+          showCatDialogueLine();
+        }
+        GameData.SoundManager.playDialogue();
+      });
+      choicesContainer.appendChild(btn);
+    });
+  } else {
+    continueHint.style.display = 'block';
+  }
+  
+  GameData.SoundManager.playDialogue();
+}
+
+function advanceCatConversation() {
+  if (!currentCatConversation) return;
+  
+  const line = currentCatConversation.lines[catConversationLineIndex];
+  
+  // Don't advance if there are choices
+  if (line && line.choices) return;
+  
+  catConversationLineIndex++;
+  
+  if (catConversationLineIndex >= currentCatConversation.lines.length) {
+    // Check for onEnd handler
+    if (line && line.onEnd) {
+      handleConversationEnd(line.onEnd);
+    }
+    endCatConversation();
+  } else {
+    showCatDialogueLine();
+  }
+}
+
+function handleConversationEnd(endType) {
+  if (endType === 'socks_bully_done') {
+    GameState.talkedTo['Socks_intro'] = true;
+    if (GameState.talkedTo['Ruby_intro']) {
+      GameState.storyProgress = 2; // Both siblings done, can talk to mom
+    } else {
+      GameState.storyProgress = 1; // One sibling done
+    }
+  } else if (endType === 'ruby_bully_done') {
+    GameState.talkedTo['Ruby_intro'] = true;
+    if (GameState.talkedTo['Socks_intro']) {
+      GameState.storyProgress = 2; // Both siblings done, can talk to mom
+    } else {
+      GameState.storyProgress = 1; // One sibling done
+    }
+  } else if (endType === 'quince_comfort_done') {
+    GameState.talkedTo['Quince_comfort'] = true;
+    GameState.storyProgress = 3; // Mom comforted you, chapter can continue
+    
+    // Show narration about what happens next
+    setTimeout(() => {
+      showNarrationSequence([
+        { text: "You feel a little better after talking to your mother..." },
+        { text: "But the cruel words of Socks and Ruby still echo in your mind." },
+        { text: "Maybe... maybe they're right. Maybe nobody will want you." },
+        { text: "You look out the window at the forest beyond..." },
+        { text: "What if you could prove them all wrong?" }
+      ], () => {
+        // Story continues...
+      });
+    }, 500);
+  }
+}
+
+function endCatConversation() {
+  currentCatConversation = null;
+  GameState.isInDialogue = false;
+  dialogueBox.classList.add('hidden');
+  
+  if (catConversationCallback) {
+    catConversationCallback();
+    catConversationCallback = null;
+  }
+}
+
+// Update the startCatConversation to use the new system
+function startCatConversation(catName) {
+  const dialogueKey = getCatDialogueKey(catName);
+  const dialogue = GameData.CAT_DIALOGUES?.[dialogueKey];
+  
+  if (dialogue) {
+    GameState.lastTalkedCat = catName;
+    showCatDialogue(dialogue);
+  }
 }
 
 // Show narration sequence (array of texts)
@@ -2637,12 +2816,12 @@ function startChapter(chapterNum) {
   // Create environment
   createEnvironment(chapterNum);
   
-  // Player starts in basket for chapter 1 (hiding spot for hide and seek)
+  // Player starting position
   if (chapterNum === 1) {
-    // Start by the edge of the couch (hiding spot)
-    camera.position.set(-8.5, 0.4, -9);
+    // Start in the basket
+    camera.position.set(5, 0.5, -8);
     cameraPitch = 0;
-    cameraYaw = Math.PI / 4; // Looking toward room
+    cameraYaw = Math.PI; // Looking out of basket toward room
   } else {
     camera.position.set(0, 0.5, 5);
     cameraPitch = 0;
@@ -2895,6 +3074,87 @@ function onWindowResize() {
   renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
+// Check for nearby cats and trigger conversations
+function checkCatProximity() {
+  if (GameState.isInDialogue || GameState.isPaused || GameState.isInBattle) return;
+  
+  const playerPos = camera.position;
+  const talkDistance = 2.5; // How close to trigger conversation
+  
+  for (const cat of catFigures) {
+    const catPos = cat.position;
+    const distance = Math.sqrt(
+      Math.pow(playerPos.x - catPos.x, 2) + 
+      Math.pow(playerPos.z - catPos.z, 2)
+    );
+    
+    if (distance < talkDistance) {
+      const catName = cat.userData.name;
+      
+      // Check if we should talk based on story progress
+      if (shouldTalkTo(catName)) {
+        startCatConversation(catName);
+        return;
+      }
+    }
+  }
+}
+
+// Determine if we should talk to this cat based on story
+function shouldTalkTo(catName) {
+  const progress = GameState.storyProgress;
+  
+  if (GameState.chapter === 1) {
+    // Chapter 1 story flow:
+    // 0: Just started, talk to Socks or Ruby first (they bully you)
+    // 1: After first bully encounter, can talk to the other sibling
+    // 2: After both siblings bully you, go to Quince for comfort
+    // 3: Story continues
+    
+    if (progress === 0 && (catName === 'Socks' || catName === 'Ruby')) {
+      return !GameState.talkedTo[catName + '_intro'];
+    }
+    if (progress === 1 && (catName === 'Socks' || catName === 'Ruby')) {
+      return !GameState.talkedTo[catName + '_intro'];
+    }
+    if (progress === 2 && catName === 'Quince') {
+      return !GameState.talkedTo['Quince_comfort'];
+    }
+  }
+  
+  return false;
+}
+
+// Start conversation with a cat
+function startCatConversation(catName) {
+  const dialogueKey = getCatDialogueKey(catName);
+  const dialogue = GameData.CAT_DIALOGUES?.[dialogueKey];
+  
+  if (dialogue) {
+    GameState.lastTalkedCat = catName;
+    showDialogue(dialogue);
+  }
+}
+
+// Get the right dialogue key based on story progress
+function getCatDialogueKey(catName) {
+  const progress = GameState.storyProgress;
+  
+  if (GameState.chapter === 1) {
+    if (catName === 'Socks' && progress < 2) {
+      return 'socks_bully';
+    }
+    if (catName === 'Ruby' && progress < 2) {
+      return 'ruby_bully';
+    }
+    if (catName === 'Quince' && progress === 2) {
+      return 'quince_comfort';
+    }
+  }
+  
+  return catName.toLowerCase() + '_default';
+}
+
 // Animation loop
 function animate() {
   requestAnimationFrame(animate);
@@ -2903,6 +3163,7 @@ function animate() {
   
   if (!gameScreen.classList.contains('hidden')) {
     updateMovement(delta);
+    checkCatProximity();
     renderer.render(scene, camera);
   }
 }
