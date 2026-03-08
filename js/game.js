@@ -270,25 +270,37 @@ function setupMobileControls() {
   });
 }
 
-// Initialize Three.js with high quality settings
+// Initialize Three.js with ULTRA HIGH quality settings
 function initThreeJS() {
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x1a1a2e);
   scene.fog = new THREE.Fog(0x1a1a2e, 5, 50);
   
-  // First-person camera
-  camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+  // First-person camera with realistic FOV
+  camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.05, 1000);
   camera.position.set(0, 0.5, 0);
   camera.rotation.order = 'YXZ';
   
-  renderer = new THREE.WebGLRenderer({ canvas: gameCanvas, antialias: true });
+  // High quality renderer
+  renderer = new THREE.WebGLRenderer({ 
+    canvas: gameCanvas, 
+    antialias: true,
+    powerPreference: "high-performance"
+  });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  
+  // Enable high quality shadows
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  
+  // Realistic tone mapping
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.0;
+  renderer.toneMappingExposure = 1.2;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
+  
+  // Physical lights
+  renderer.physicallyCorrectLights = true;
 }
 
 // Create environment based on chapter
@@ -312,119 +324,158 @@ function createEnvironment(chapter) {
   }
 }
 
-// Create Twoleg House environment - High quality cozy house!
+// Create Twoleg House environment - ULTRA REALISTIC!
 function createTwolegHouse() {
-  // === FLOOR - Detailed wooden planks ===
+  // === REALISTIC HARDWOOD FLOOR ===
   const floorGroup = new THREE.Group();
-  const plankMaterial = new THREE.MeshStandardMaterial({ 
-    color: 0xC4A46B,
-    roughness: 0.7,
-    metalness: 0.05
-  });
-  const darkPlankMaterial = new THREE.MeshStandardMaterial({ 
-    color: 0xA68B5B,
-    roughness: 0.75,
-    metalness: 0.05
-  });
   
-  // Create individual floor planks for realism
-  for (let x = -15; x < 15; x += 0.8) {
-    for (let z = -15; z < 15; z += 4) {
+  // Realistic wood materials with variation
+  const woodColors = [0xB8956B, 0xC4A57B, 0xA88B5B, 0xCDB07D, 0x9E7B4B];
+  
+  // Create detailed floor planks
+  for (let x = -15; x < 15; x += 0.6) {
+    for (let z = -15; z < 15; z += 3) {
+      const colorIndex = Math.floor(Math.random() * woodColors.length);
+      const plankMat = new THREE.MeshPhysicalMaterial({ 
+        color: woodColors[colorIndex],
+        roughness: 0.6 + Math.random() * 0.2,
+        metalness: 0.02,
+        clearcoat: 0.3,
+        clearcoatRoughness: 0.4
+      });
+      
       const plank = new THREE.Mesh(
-        new THREE.BoxGeometry(0.75, 0.1, 3.9),
-        Math.random() > 0.5 ? plankMaterial : darkPlankMaterial
+        new THREE.BoxGeometry(0.55, 0.08, 2.9),
+        plankMat
       );
-      plank.position.set(x + Math.random() * 0.05, 0.05, z + Math.random() * 0.1);
+      plank.position.set(x + Math.random() * 0.03, 0.04, z + Math.random() * 0.05);
       plank.receiveShadow = true;
+      plank.castShadow = true;
       floorGroup.add(plank);
     }
   }
   scene.add(floorGroup);
   
-  // Floor base
+  // Floor base underneath
   const floorBase = new THREE.Mesh(
-    new THREE.PlaneGeometry(30, 30),
-    new THREE.MeshStandardMaterial({ color: 0x3D2817 })
+    new THREE.PlaneGeometry(32, 32),
+    new THREE.MeshStandardMaterial({ color: 0x2D1810, roughness: 1 })
   );
   floorBase.rotation.x = -Math.PI / 2;
-  floorBase.position.y = 0;
+  floorBase.position.y = -0.01;
+  floorBase.receiveShadow = true;
   scene.add(floorBase);
   
-  // === WALLS - Textured cream walls with baseboards ===
-  const wallMaterial = new THREE.MeshStandardMaterial({ 
-    color: 0xFAF0E6,
-    roughness: 0.85,
-    metalness: 0
+  // === REALISTIC WALLS WITH TEXTURE FEEL ===
+  const wallMaterial = new THREE.MeshPhysicalMaterial({ 
+    color: 0xF5EDE3,
+    roughness: 0.9,
+    metalness: 0,
+    clearcoat: 0.05
   });
   
-  const baseboardMaterial = new THREE.MeshStandardMaterial({
-    color: 0xF5F5F5,
-    roughness: 0.5
+  // Glossy white baseboard/trim
+  const trimMaterial = new THREE.MeshPhysicalMaterial({
+    color: 0xFFFFFD,
+    roughness: 0.2,
+    metalness: 0.02,
+    clearcoat: 0.8
   });
   
   // Back wall
-  const backWall = new THREE.Mesh(new THREE.PlaneGeometry(30, 10), wallMaterial);
-  backWall.position.set(0, 5, -15);
+  const backWall = new THREE.Mesh(new THREE.PlaneGeometry(32, 12), wallMaterial);
+  backWall.position.set(0, 6, -16);
   backWall.receiveShadow = true;
   scene.add(backWall);
   
-  // Baseboard back
-  const baseboardBack = new THREE.Mesh(new THREE.BoxGeometry(30, 0.4, 0.1), baseboardMaterial);
-  baseboardBack.position.set(0, 0.2, -14.95);
+  // Baseboard - back
+  const baseboardGeom = new THREE.BoxGeometry(32, 0.35, 0.12);
+  const baseboardBack = new THREE.Mesh(baseboardGeom, trimMaterial);
+  baseboardBack.position.set(0, 0.18, -15.9);
+  baseboardBack.castShadow = true;
   scene.add(baseboardBack);
   
   // Side walls
-  const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(30, 10), wallMaterial);
+  const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(32, 12), wallMaterial);
   leftWall.rotation.y = Math.PI / 2;
-  leftWall.position.set(-15, 5, 0);
+  leftWall.position.set(-16, 6, 0);
   leftWall.receiveShadow = true;
   scene.add(leftWall);
   
-  const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(30, 10), wallMaterial);
+  const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(32, 12), wallMaterial);
   rightWall.rotation.y = -Math.PI / 2;
-  rightWall.position.set(15, 5, 0);
+  rightWall.position.set(16, 6, 0);
   rightWall.receiveShadow = true;
   scene.add(rightWall);
   
   // Front wall
-  const frontWall = new THREE.Mesh(new THREE.PlaneGeometry(30, 10), wallMaterial);
+  const frontWall = new THREE.Mesh(new THREE.PlaneGeometry(32, 12), wallMaterial);
   frontWall.rotation.y = Math.PI;
-  frontWall.position.set(0, 5, 15);
+  frontWall.position.set(0, 6, 16);
   scene.add(frontWall);
   
-  // Crown molding
-  const crownMaterial = new THREE.MeshStandardMaterial({ color: 0xFFFFF0, roughness: 0.3 });
-  const crownBack = new THREE.Mesh(new THREE.BoxGeometry(30, 0.3, 0.2), crownMaterial);
-  crownBack.position.set(0, 9.85, -14.9);
+  // Crown molding - realistic profile
+  const crownMaterial = new THREE.MeshPhysicalMaterial({ 
+    color: 0xFFFFF8, 
+    roughness: 0.15,
+    clearcoat: 0.9
+  });
+  const crownBack = new THREE.Mesh(new THREE.BoxGeometry(32, 0.25, 0.18), crownMaterial);
+  crownBack.position.set(0, 11.87, -15.9);
+  crownBack.castShadow = true;
   scene.add(crownBack);
   
-  // === LUXURIOUS COUCH ===
+  // === ULTRA-REALISTIC LEATHER COUCH ===
   const couchGroup = new THREE.Group();
   
-  // Rich velvet material
-  const velvetMaterial = new THREE.MeshStandardMaterial({ 
-    color: 0x4A2C2A,
-    roughness: 0.9,
-    metalness: 0
+  // Realistic leather material
+  const leatherMaterial = new THREE.MeshPhysicalMaterial({ 
+    color: 0x4A3528,
+    roughness: 0.55,
+    metalness: 0.02,
+    clearcoat: 0.3,
+    clearcoatRoughness: 0.5,
+    sheen: 0.5,
+    sheenRoughness: 0.5,
+    sheenColor: new THREE.Color(0x2A1A10)
   });
   
-  const leatherMaterial = new THREE.MeshStandardMaterial({
-    color: 0x5C4033,
-    roughness: 0.4,
-    metalness: 0.1
+  // Fabric for cushions
+  const fabricMaterial = new THREE.MeshPhysicalMaterial({
+    color: 0x3D2520,
+    roughness: 0.95,
+    metalness: 0,
+    sheen: 0.3,
+    sheenRoughness: 0.8,
+    sheenColor: new THREE.Color(0x5A3A30)
   });
   
-  // Couch frame/base
+  // Couch frame/base with wooden legs
   const couchBase = new THREE.Mesh(
-    new THREE.BoxGeometry(8, 0.6, 3.2),
+    new THREE.BoxGeometry(8, 0.5, 3.2),
     leatherMaterial
   );
-  couchBase.position.set(0, 0.3, 0);
+  couchBase.position.set(0, 0.35, 0);
   couchBase.castShadow = true;
   couchBase.receiveShadow = true;
   couchGroup.add(couchBase);
   
-  // Couch back - curved
+  // Wooden legs
+  const legMaterial = new THREE.MeshPhysicalMaterial({
+    color: 0x3D2817,
+    roughness: 0.4,
+    metalness: 0.05,
+    clearcoat: 0.6
+  });
+  const legGeom = new THREE.CylinderGeometry(0.08, 0.1, 0.2, 12);
+  [[-3.5, -1.3], [-3.5, 1.3], [3.5, -1.3], [3.5, 1.3]].forEach(pos => {
+    const leg = new THREE.Mesh(legGeom, legMaterial);
+    leg.position.set(pos[0], 0.1, pos[1]);
+    leg.castShadow = true;
+    couchGroup.add(leg);
+  });
+  
+  // Couch back - curved and tufted
   const backShape = new THREE.Shape();
   backShape.moveTo(-4, 0);
   backShape.lineTo(-4, 2.2);
@@ -433,229 +484,333 @@ function createTwolegHouse() {
   backShape.quadraticCurveTo(3.8, 2.5, 4, 2.2);
   backShape.lineTo(4, 0);
   
-  const backGeometry = new THREE.ExtrudeGeometry(backShape, { depth: 0.5, bevelEnabled: false });
-  const couchBack = new THREE.Mesh(backGeometry, velvetMaterial);
+  const backGeometry = new THREE.ExtrudeGeometry(backShape, { depth: 0.5, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.05 });
+  const couchBack = new THREE.Mesh(backGeometry, leatherMaterial);
   couchBack.rotation.x = -Math.PI / 2;
   couchBack.rotation.z = Math.PI;
   couchBack.position.set(0, 0.6, -1.35);
   couchBack.castShadow = true;
   couchGroup.add(couchBack);
   
-  // Couch arms - rounded
-  const armGeometry = new THREE.CylinderGeometry(0.4, 0.5, 3, 16, 1, false, 0, Math.PI);
-  const armL = new THREE.Mesh(armGeometry, velvetMaterial);
+  // Couch arms - rounded leather
+  const armGeometry = new THREE.CapsuleGeometry(0.4, 2.5, 12, 24);
+  const armL = new THREE.Mesh(armGeometry, leatherMaterial);
   armL.rotation.x = Math.PI / 2;
   armL.position.set(-3.7, 0.9, 0);
   armL.castShadow = true;
   couchGroup.add(armL);
   
-  const armR = new THREE.Mesh(armGeometry, velvetMaterial);
+  const armR = new THREE.Mesh(armGeometry, leatherMaterial);
   armR.rotation.x = Math.PI / 2;
   armR.position.set(3.7, 0.9, 0);
   armR.castShadow = true;
   couchGroup.add(armR);
   
-  // Plush seat cushions
-  const cushionMaterial = new THREE.MeshStandardMaterial({ 
-    color: 0x5D3A3A,
-    roughness: 0.95
-  });
-  
+  // Plush seat cushions with realistic fabric
   for (let i = 0; i < 3; i++) {
+    // Main cushion
     const cushion = new THREE.Mesh(
-      new THREE.BoxGeometry(2.3, 0.5, 2.2),
-      cushionMaterial
+      new THREE.BoxGeometry(2.2, 0.45, 2.0),
+      fabricMaterial
     );
-    // Round the cushion edges
     cushion.position.set(-2.5 + i * 2.5, 0.85, 0.2);
     cushion.castShadow = true;
+    cushion.receiveShadow = true;
     couchGroup.add(cushion);
     
-    // Add pillow details on each cushion
-    const pillow = new THREE.Mesh(
-      new THREE.SphereGeometry(0.35, 16, 16),
-      new THREE.MeshStandardMaterial({ color: 0xD4AF37, roughness: 0.8 })
+    // Cushion indent detail
+    const indent = new THREE.Mesh(
+      new THREE.PlaneGeometry(1.8, 1.6),
+      new THREE.MeshStandardMaterial({ color: 0x2D1815, roughness: 1 })
     );
-    pillow.scale.set(1.5, 0.6, 1);
-    pillow.position.set(-2.5 + i * 2.5, 1.2, -0.8);
+    indent.rotation.x = -Math.PI / 2;
+    indent.position.set(-2.5 + i * 2.5, 1.08, 0.2);
+    couchGroup.add(indent);
+    
+    // Back pillow
+    const pillow = new THREE.Mesh(
+      new THREE.SphereGeometry(0.38, 24, 24),
+      new THREE.MeshPhysicalMaterial({ 
+        color: 0xC9A962, 
+        roughness: 0.85,
+        sheen: 0.4,
+        sheenColor: new THREE.Color(0xE8C872)
+      })
+    );
+    pillow.scale.set(1.4, 0.55, 0.9);
+    pillow.position.set(-2.5 + i * 2.5, 1.25, -0.75);
     pillow.castShadow = true;
     couchGroup.add(pillow);
   }
   
   // Decorative throw pillow
   const throwPillow = new THREE.Mesh(
-    new THREE.BoxGeometry(0.8, 0.6, 0.3),
-    new THREE.MeshStandardMaterial({ color: 0xB8860B, roughness: 0.85 })
+    new THREE.BoxGeometry(0.75, 0.55, 0.28),
+    new THREE.MeshPhysicalMaterial({ 
+      color: 0x8B6914, 
+      roughness: 0.8,
+      sheen: 0.3
+    })
   );
-  throwPillow.position.set(-3.2, 1.1, 0.5);
-  throwPillow.rotation.z = 0.3;
+  throwPillow.position.set(-3.2, 1.15, 0.5);
+  throwPillow.rotation.z = 0.25;
+  throwPillow.rotation.y = 0.1;
+  throwPillow.castShadow = true;
   couchGroup.add(throwPillow);
   
   couchGroup.position.set(-5, 0, -10);
   scene.add(couchGroup);
   
-  // === WOVEN CAT BASKET ===
+  // === REALISTIC WOVEN CAT BASKET ===
   const basketGroup = new THREE.Group();
   
-  // Wicker material
-  const wickerMaterial = new THREE.MeshStandardMaterial({ 
-    color: 0x8B7355,
+  // Natural wicker material
+  const wickerMaterial = new THREE.MeshPhysicalMaterial({ 
+    color: 0x9B8365,
+    roughness: 0.92,
+    metalness: 0,
+    sheen: 0.1
+  });
+  
+  const darkWickerMaterial = new THREE.MeshPhysicalMaterial({ 
+    color: 0x7A6545,
     roughness: 0.95,
     metalness: 0
   });
   
-  // Create woven basket effect
+  // Create realistic woven basket
   const basketRadius = 1.5;
-  const basketHeight = 0.6;
+  const basketHeight = 0.65;
   
-  // Basket walls - vertical weave
-  for (let i = 0; i < 32; i++) {
-    const angle = (i / 32) * Math.PI * 2;
+  // Basket base - solid woven look
+  const basketBase = new THREE.Mesh(
+    new THREE.CylinderGeometry(basketRadius - 0.1, basketRadius - 0.15, 0.08, 32),
+    darkWickerMaterial
+  );
+  basketBase.position.y = 0.04;
+  basketBase.receiveShadow = true;
+  basketGroup.add(basketBase);
+  
+  // Basket walls - detailed vertical weave strands
+  for (let i = 0; i < 48; i++) {
+    const angle = (i / 48) * Math.PI * 2;
+    const mat = i % 2 === 0 ? wickerMaterial : darkWickerMaterial;
     const strand = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.05, 0.06, basketHeight, 8),
-      wickerMaterial
+      new THREE.CylinderGeometry(0.04, 0.05, basketHeight, 8),
+      mat
     );
     strand.position.set(
       Math.cos(angle) * basketRadius,
       basketHeight / 2,
       Math.sin(angle) * basketRadius
     );
+    strand.castShadow = true;
     basketGroup.add(strand);
   }
   
-  // Horizontal weave rings
-  for (let h = 0.1; h < basketHeight; h += 0.12) {
+  // Horizontal weave rings - more detail
+  for (let h = 0.08; h < basketHeight; h += 0.08) {
+    const mat = Math.floor(h * 10) % 2 === 0 ? wickerMaterial : darkWickerMaterial;
     const ring = new THREE.Mesh(
-      new THREE.TorusGeometry(basketRadius, 0.04, 8, 32),
-      wickerMaterial
+      new THREE.TorusGeometry(basketRadius, 0.035, 8, 48),
+      mat
     );
     ring.rotation.x = Math.PI / 2;
     ring.position.y = h;
+    ring.castShadow = true;
     basketGroup.add(ring);
   }
   
-  // Basket rim
-  const rimMaterial = new THREE.MeshStandardMaterial({ color: 0x6B5344, roughness: 0.8 });
+  // Thick braided rim
+  const rimMaterial = new THREE.MeshPhysicalMaterial({ 
+    color: 0x5A4534, 
+    roughness: 0.75,
+    sheen: 0.15
+  });
   const rim = new THREE.Mesh(
-    new THREE.TorusGeometry(basketRadius + 0.05, 0.1, 12, 32),
+    new THREE.TorusGeometry(basketRadius + 0.06, 0.12, 16, 48),
     rimMaterial
   );
   rim.rotation.x = Math.PI / 2;
   rim.position.y = basketHeight;
+  rim.castShadow = true;
   basketGroup.add(rim);
   
-  // Fluffy cushion inside
-  const fluffMaterial = new THREE.MeshStandardMaterial({ 
-    color: 0xFFF5EE,
-    roughness: 1.0
+  // Soft fluffy cushion inside - realistic fabric
+  const fluffMaterial = new THREE.MeshPhysicalMaterial({ 
+    color: 0xFFF8F0,
+    roughness: 0.98,
+    sheen: 0.2,
+    sheenRoughness: 0.9,
+    sheenColor: new THREE.Color(0xFFFAF5)
   });
   const fluffCushion = new THREE.Mesh(
-    new THREE.SphereGeometry(1.2, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2),
+    new THREE.SphereGeometry(1.25, 48, 32, 0, Math.PI * 2, 0, Math.PI / 2),
     fluffMaterial
   );
-  fluffCushion.scale.y = 0.3;
-  fluffCushion.position.y = 0.15;
+  fluffCushion.scale.y = 0.28;
+  fluffCushion.position.y = 0.12;
   fluffCushion.castShadow = true;
+  fluffCushion.receiveShadow = true;
   basketGroup.add(fluffCushion);
+  
+  // Cushion folds/wrinkles for realism
+  for (let i = 0; i < 6; i++) {
+    const fold = new THREE.Mesh(
+      new THREE.CapsuleGeometry(0.08, 0.8, 8, 16),
+      new THREE.MeshPhysicalMaterial({ 
+        color: 0xF5EDE5, 
+        roughness: 0.95,
+        sheen: 0.15
+      })
+    );
+    const angle = (i / 6) * Math.PI * 2;
+    fold.rotation.z = Math.PI / 2;
+    fold.rotation.y = angle;
+    fold.position.set(Math.cos(angle) * 0.5, 0.32, Math.sin(angle) * 0.5);
+    basketGroup.add(fold);
+  }
   
   basketGroup.position.set(5, 0, -8);
   scene.add(basketGroup);
   
-  // === LARGE WINDOWS WITH DETAILED FRAMES ===
+  // === REALISTIC WINDOWS WITH LIGHT RAYS ===
   const createWindow = (x, z) => {
     const windowGroup = new THREE.Group();
     
-    // Window glass - with slight blue tint and glow
+    // Realistic window glass with reflections
     const glassMaterial = new THREE.MeshPhysicalMaterial({
-      color: 0xADD8E6,
+      color: 0xE8F4FC,
       transparent: true,
-      opacity: 0.6,
-      roughness: 0.1,
-      metalness: 0,
-      clearcoat: 1.0
+      opacity: 0.45,
+      roughness: 0.02,
+      metalness: 0.1,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.02,
+      reflectivity: 0.9,
+      ior: 1.5
     });
     
     const glass = new THREE.Mesh(new THREE.PlaneGeometry(4.5, 4), glassMaterial);
-    glass.position.z = 0.05;
+    glass.position.z = 0.06;
     windowGroup.add(glass);
     
-    // Sky/outside visible through window
-    const skyMaterial = new THREE.MeshBasicMaterial({ color: 0x87CEEB });
+    // Sky/outside - gradient sky effect
+    const skyMaterial = new THREE.MeshBasicMaterial({ color: 0x7EC8E3 });
     const sky = new THREE.Mesh(new THREE.PlaneGeometry(4.5, 4), skyMaterial);
     windowGroup.add(sky);
     
-    // White wooden frame
-    const frameMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0xFFFFF5,
-      roughness: 0.4,
-      metalness: 0.05
+    // Clouds visible through window
+    for (let i = 0; i < 3; i++) {
+      const cloud = new THREE.Mesh(
+        new THREE.SphereGeometry(0.3 + Math.random() * 0.3, 16, 16),
+        new THREE.MeshBasicMaterial({ color: 0xFFFFFF })
+      );
+      cloud.scale.set(2, 0.6, 1);
+      cloud.position.set(-1.5 + i * 1.5 + Math.random(), 1 + Math.random() * 0.5, -0.05);
+      windowGroup.add(cloud);
+    }
+    
+    // Painted wooden frame - glossy white
+    const frameMaterial = new THREE.MeshPhysicalMaterial({ 
+      color: 0xFFFFF8,
+      roughness: 0.25,
+      metalness: 0.02,
+      clearcoat: 0.7,
+      clearcoatRoughness: 0.3
     });
     
-    // Frame pieces
-    const frameTop = new THREE.Mesh(new THREE.BoxGeometry(5.2, 0.25, 0.15), frameMaterial);
-    frameTop.position.set(0, 2.1, 0.1);
+    // Frame pieces with bevels
+    const frameTop = new THREE.Mesh(new THREE.BoxGeometry(5.2, 0.28, 0.18), frameMaterial);
+    frameTop.position.set(0, 2.12, 0.12);
     frameTop.castShadow = true;
     windowGroup.add(frameTop);
     
-    const frameBottom = new THREE.Mesh(new THREE.BoxGeometry(5.2, 0.3, 0.2), frameMaterial);
-    frameBottom.position.set(0, -2.1, 0.1);
+    const frameBottom = new THREE.Mesh(new THREE.BoxGeometry(5.2, 0.32, 0.22), frameMaterial);
+    frameBottom.position.set(0, -2.12, 0.12);
+    frameBottom.castShadow = true;
     windowGroup.add(frameBottom);
     
-    const frameLeft = new THREE.Mesh(new THREE.BoxGeometry(0.2, 4.5, 0.15), frameMaterial);
-    frameLeft.position.set(-2.4, 0, 0.1);
+    const frameLeft = new THREE.Mesh(new THREE.BoxGeometry(0.22, 4.6, 0.18), frameMaterial);
+    frameLeft.position.set(-2.42, 0, 0.12);
+    frameLeft.castShadow = true;
     windowGroup.add(frameLeft);
     
-    const frameRight = new THREE.Mesh(new THREE.BoxGeometry(0.2, 4.5, 0.15), frameMaterial);
-    frameRight.position.set(2.4, 0, 0.1);
+    const frameRight = new THREE.Mesh(new THREE.BoxGeometry(0.22, 4.6, 0.18), frameMaterial);
+    frameRight.position.set(2.42, 0, 0.12);
+    frameRight.castShadow = true;
     windowGroup.add(frameRight);
     
-    // Window dividers
-    const dividerV = new THREE.Mesh(new THREE.BoxGeometry(0.08, 4, 0.1), frameMaterial);
-    dividerV.position.z = 0.08;
+    // Window dividers (muntins)
+    const dividerV = new THREE.Mesh(new THREE.BoxGeometry(0.07, 4, 0.09), frameMaterial);
+    dividerV.position.z = 0.09;
     windowGroup.add(dividerV);
     
-    const dividerH = new THREE.Mesh(new THREE.BoxGeometry(4.5, 0.08, 0.1), frameMaterial);
-    dividerH.position.z = 0.08;
+    const dividerH = new THREE.Mesh(new THREE.BoxGeometry(4.5, 0.07, 0.09), frameMaterial);
+    dividerH.position.z = 0.09;
     windowGroup.add(dividerH);
     
-    // Window sill
+    // Detailed window sill
     const sill = new THREE.Mesh(
-      new THREE.BoxGeometry(5.5, 0.15, 0.5),
+      new THREE.BoxGeometry(5.6, 0.18, 0.55),
       frameMaterial
     );
-    sill.position.set(0, -2.2, 0.25);
+    sill.position.set(0, -2.25, 0.28);
+    sill.castShadow = true;
     windowGroup.add(sill);
+    
+    // Light shaft from window (volumetric feel)
+    const lightShaftMat = new THREE.MeshBasicMaterial({
+      color: 0xFFFAE6,
+      transparent: true,
+      opacity: 0.08,
+      side: THREE.DoubleSide
+    });
+    const lightShaft = new THREE.Mesh(
+      new THREE.PlaneGeometry(4.5, 10),
+      lightShaftMat
+    );
+    lightShaft.rotation.x = -Math.PI / 4;
+    lightShaft.position.set(0, -2, 5);
+    windowGroup.add(lightShaft);
     
     windowGroup.position.set(x, 5, z);
     return windowGroup;
   };
   
-  scene.add(createWindow(-6, -14.9));
-  scene.add(createWindow(6, -14.9));
+  scene.add(createWindow(-6, -15.85));
+  scene.add(createWindow(6, -15.85));
   
   // === ELEGANT COFFEE TABLE ===
   const tableGroup = new THREE.Group();
-  const darkWoodMaterial = new THREE.MeshStandardMaterial({
+  const darkWoodMaterial = new THREE.MeshPhysicalMaterial({
     color: 0x3D2314,
-    roughness: 0.5,
-    metalness: 0.1
+    roughness: 0.4,
+    metalness: 0.05,
+    clearcoat: 0.6,
+    clearcoatRoughness: 0.3
   });
   
-  // Glass top
+  // Realistic glass top with proper refraction
   const glassTopMaterial = new THREE.MeshPhysicalMaterial({
-    color: 0xFFFFFF,
+    color: 0xF8FFFF,
     transparent: true,
-    opacity: 0.3,
-    roughness: 0.05,
-    metalness: 0,
-    clearcoat: 1.0
+    opacity: 0.35,
+    roughness: 0.02,
+    metalness: 0.05,
+    clearcoat: 1.0,
+    clearcoatRoughness: 0.01,
+    ior: 1.52,
+    thickness: 0.5,
+    transmission: 0.95
   });
   
   const glassTop = new THREE.Mesh(
-    new THREE.BoxGeometry(3.5, 0.08, 2),
+    new THREE.BoxGeometry(3.5, 0.1, 2),
     glassTopMaterial
   );
   glassTop.position.y = 1.05;
+  glassTop.castShadow = true;
   tableGroup.add(glassTop);
   
   // Wood frame under glass
@@ -780,61 +935,128 @@ function createTwolegHouse() {
   armchairGroup.position.set(8, 0, -5);
   scene.add(armchairGroup);
   
-  // === PERSIAN-STYLE RUG ===
+  // === LUXURIOUS PERSIAN-STYLE RUG ===
   const rugGroup = new THREE.Group();
   
-  // Main rug
-  const rugMaterial = new THREE.MeshStandardMaterial({ 
-    color: 0x8B0000,
-    roughness: 1.0,
-    metalness: 0
+  // Main rug with realistic fabric texture
+  const rugMaterial = new THREE.MeshPhysicalMaterial({ 
+    color: 0x7A1515,
+    roughness: 0.95,
+    metalness: 0,
+    sheen: 0.3,
+    sheenRoughness: 0.8,
+    sheenColor: new THREE.Color(0x9A2525)
   });
   const rug = new THREE.Mesh(new THREE.PlaneGeometry(10, 7), rugMaterial);
   rug.rotation.x = -Math.PI / 2;
-  rug.position.y = 0.02;
+  rug.position.y = 0.015;
   rug.receiveShadow = true;
   rugGroup.add(rug);
   
-  // Decorative border
-  const borderMaterial = new THREE.MeshStandardMaterial({ color: 0xDAA520, roughness: 0.9 });
+  // Decorative gold border with thread detail
+  const borderMaterial = new THREE.MeshPhysicalMaterial({ 
+    color: 0xC5A028, 
+    roughness: 0.85,
+    metalness: 0.1,
+    sheen: 0.4,
+    sheenColor: new THREE.Color(0xE5C048)
+  });
   const borderWidth = 0.4;
   
   const borderTop = new THREE.Mesh(new THREE.PlaneGeometry(10, borderWidth), borderMaterial);
   borderTop.rotation.x = -Math.PI / 2;
-  borderTop.position.set(0, 0.025, -3.3);
+  borderTop.position.set(0, 0.018, -3.3);
   rugGroup.add(borderTop);
   
   const borderBottom = new THREE.Mesh(new THREE.PlaneGeometry(10, borderWidth), borderMaterial);
   borderBottom.rotation.x = -Math.PI / 2;
-  borderBottom.position.set(0, 0.025, 3.3);
+  borderBottom.position.set(0, 0.018, 3.3);
   rugGroup.add(borderBottom);
   
   const borderLeft = new THREE.Mesh(new THREE.PlaneGeometry(borderWidth, 7), borderMaterial);
   borderLeft.rotation.x = -Math.PI / 2;
-  borderLeft.position.set(-4.8, 0.025, 0);
+  borderLeft.position.set(-4.8, 0.018, 0);
   rugGroup.add(borderLeft);
   
   const borderRight = new THREE.Mesh(new THREE.PlaneGeometry(borderWidth, 7), borderMaterial);
   borderRight.rotation.x = -Math.PI / 2;
-  borderRight.position.set(4.8, 0.025, 0);
+  borderRight.position.set(4.8, 0.018, 0);
   rugGroup.add(borderRight);
   
-  // Center medallion
+  // Inner border - navy
+  const innerBorderMat = new THREE.MeshPhysicalMaterial({ 
+    color: 0x1A1A4A, 
+    roughness: 0.9,
+    sheen: 0.2
+  });
+  const innerBorderWidth = 0.25;
+  const innerOffset = 3.0;
+  [
+    [0, -innerOffset, 9.2, innerBorderWidth],
+    [0, innerOffset, 9.2, innerBorderWidth],
+    [-4.5, 0, innerBorderWidth, 6.5],
+    [4.5, 0, innerBorderWidth, 6.5]
+  ].forEach(pos => {
+    const border = new THREE.Mesh(new THREE.PlaneGeometry(pos[2], pos[3]), innerBorderMat);
+    border.rotation.x = -Math.PI / 2;
+    border.position.set(pos[0], 0.02, pos[1]);
+    rugGroup.add(border);
+  });
+  
+  // Center medallion - elaborate
   const medallion = new THREE.Mesh(
-    new THREE.CircleGeometry(1.5, 32),
-    new THREE.MeshStandardMaterial({ color: 0x191970, roughness: 0.9 })
+    new THREE.CircleGeometry(1.6, 48),
+    new THREE.MeshPhysicalMaterial({ 
+      color: 0x0F0F3A, 
+      roughness: 0.88,
+      sheen: 0.25,
+      sheenColor: new THREE.Color(0x2F2F5A)
+    })
   );
   medallion.rotation.x = -Math.PI / 2;
-  medallion.position.y = 0.03;
+  medallion.position.y = 0.022;
   rugGroup.add(medallion);
   
+  // Inner medallion ring
+  const midMedallion = new THREE.Mesh(
+    new THREE.RingGeometry(0.9, 1.3, 48),
+    borderMaterial
+  );
+  midMedallion.rotation.x = -Math.PI / 2;
+  midMedallion.position.y = 0.024;
+  rugGroup.add(midMedallion);
+  
   const innerMedallion = new THREE.Mesh(
-    new THREE.CircleGeometry(0.8, 32),
-    new THREE.MeshStandardMaterial({ color: 0xB8860B, roughness: 0.9 })
+    new THREE.CircleGeometry(0.85, 48),
+    new THREE.MeshPhysicalMaterial({ 
+      color: 0xA52A2A, 
+      roughness: 0.9,
+      sheen: 0.3
+    })
   );
   innerMedallion.rotation.x = -Math.PI / 2;
-  innerMedallion.position.y = 0.035;
+  innerMedallion.position.y = 0.026;
   rugGroup.add(innerMedallion);
+  
+  // Center design
+  const centerDesign = new THREE.Mesh(
+    new THREE.CircleGeometry(0.4, 32),
+    borderMaterial
+  );
+  centerDesign.rotation.x = -Math.PI / 2;
+  centerDesign.position.y = 0.028;
+  rugGroup.add(centerDesign);
+  
+  // Fringe on edges
+  const fringeMat = new THREE.MeshStandardMaterial({ color: 0xC5A028, roughness: 0.95 });
+  for (let x = -4.8; x <= 4.8; x += 0.15) {
+    const fringe = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.01, 0.3), fringeMat);
+    fringe.position.set(x, 0.01, -3.65);
+    rugGroup.add(fringe);
+    const fringe2 = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.01, 0.3), fringeMat);
+    fringe2.position.set(x, 0.01, 3.65);
+    rugGroup.add(fringe2);
+  }
   
   rugGroup.position.set(0, 0, -3);
   scene.add(rugGroup);
@@ -909,41 +1131,70 @@ function createTwolegHouse() {
   quince.rotation.y = Math.PI / 6;
   catFigures.push(quince);
   
-  // === PREMIUM LIGHTING ===
-  scene.background = new THREE.Color(0xFFF8E7);
-  scene.fog = new THREE.Fog(0xFFF8E7, 15, 45);
+  // === ULTRA-REALISTIC LIGHTING ===
+  scene.background = new THREE.Color(0xFAF5EC);
+  scene.fog = new THREE.Fog(0xFAF5EC, 20, 50);
   
-  // Main sunlight from windows - warm and bright
-  const sunLight = new THREE.DirectionalLight(0xFFF5E6, 1.2);
-  sunLight.position.set(0, 15, -20);
+  // Main sunlight from windows - golden hour warmth
+  const sunLight = new THREE.DirectionalLight(0xFFF2D6, 1.8);
+  sunLight.position.set(-5, 20, -25);
   sunLight.castShadow = true;
-  sunLight.shadow.mapSize.width = 2048;
-  sunLight.shadow.mapSize.height = 2048;
-  sunLight.shadow.camera.near = 0.5;
-  sunLight.shadow.camera.far = 50;
-  sunLight.shadow.camera.left = -20;
-  sunLight.shadow.camera.right = 20;
-  sunLight.shadow.camera.top = 20;
-  sunLight.shadow.camera.bottom = -20;
-  sunLight.shadow.bias = -0.0001;
+  sunLight.shadow.mapSize.width = 4096;
+  sunLight.shadow.mapSize.height = 4096;
+  sunLight.shadow.camera.near = 0.1;
+  sunLight.shadow.camera.far = 60;
+  sunLight.shadow.camera.left = -25;
+  sunLight.shadow.camera.right = 25;
+  sunLight.shadow.camera.top = 25;
+  sunLight.shadow.camera.bottom = -25;
+  sunLight.shadow.bias = -0.0002;
+  sunLight.shadow.normalBias = 0.02;
+  sunLight.shadow.radius = 2;
   scene.add(sunLight);
   
-  // Warm ambient fill
-  const warmAmbient = new THREE.AmbientLight(0xFFE4C4, 0.4);
+  // Secondary fill light from opposite window
+  const fillLight = new THREE.DirectionalLight(0xE8F0FF, 0.6);
+  fillLight.position.set(10, 12, -15);
+  fillLight.castShadow = true;
+  fillLight.shadow.mapSize.width = 2048;
+  fillLight.shadow.mapSize.height = 2048;
+  fillLight.shadow.bias = -0.0002;
+  scene.add(fillLight);
+  
+  // Warm ambient for shadows - not fully black
+  const warmAmbient = new THREE.AmbientLight(0xFFEBD6, 0.35);
   scene.add(warmAmbient);
   
-  // Soft hemisphere light for natural sky/ground bounce
-  const hemiLight = new THREE.HemisphereLight(0xFFF5E1, 0xC4A46B, 0.3);
+  // Natural hemisphere light for sky/ground bounce
+  const hemiLight = new THREE.HemisphereLight(0xFFFAF0, 0x9A8560, 0.45);
   scene.add(hemiLight);
   
-  // Point lights for cozy atmosphere
-  const lampLight1 = new THREE.PointLight(0xFFD700, 0.5, 8);
-  lampLight1.position.set(-5, 2, -5);
+  // Soft window bounce lights
+  const windowBounce1 = new THREE.PointLight(0xE8F4FF, 0.6, 12);
+  windowBounce1.position.set(-6, 3, -12);
+  scene.add(windowBounce1);
+  
+  const windowBounce2 = new THREE.PointLight(0xE8F4FF, 0.6, 12);
+  windowBounce2.position.set(6, 3, -12);
+  scene.add(windowBounce2);
+  
+  // Warm lamp lights - tungsten color
+  const lampLight1 = new THREE.PointLight(0xFFCC66, 0.7, 10);
+  lampLight1.position.set(-5, 3, -5);
+  lampLight1.castShadow = true;
+  lampLight1.shadow.mapSize.width = 512;
+  lampLight1.shadow.mapSize.height = 512;
   scene.add(lampLight1);
   
-  const lampLight2 = new THREE.PointLight(0xFFD700, 0.3, 6);
-  lampLight2.position.set(8, 2, -5);
+  const lampLight2 = new THREE.PointLight(0xFFCC66, 0.5, 8);
+  lampLight2.position.set(8, 2.5, -5);
+  lampLight2.castShadow = true;
   scene.add(lampLight2);
+  
+  // Subtle rim light for depth
+  const rimLight = new THREE.DirectionalLight(0xFFE8C4, 0.3);
+  rimLight.position.set(0, 5, 15);
+  scene.add(rimLight);
 }
 
 // Create Forest environment - Atmospheric and detailed
@@ -982,15 +1233,17 @@ function createForest() {
   
   scene.add(groundGroup);
   
-  // === TREES - Varied and detailed ===
+  // === TREES - Realistic detailed trees ===
   const createTree = (x, z, size = 1) => {
     const treeGroup = new THREE.Group();
     const height = 4 + Math.random() * 3;
     
-    // Trunk with bark texture feel
-    const trunkMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x3D2817,
-      roughness: 0.95
+    // Realistic bark material
+    const trunkMaterial = new THREE.MeshPhysicalMaterial({ 
+      color: 0x3A2515,
+      roughness: 0.95,
+      metalness: 0,
+      sheen: 0.05
     });
     
     // Main trunk
@@ -1016,14 +1269,22 @@ function createForest() {
       treeGroup.add(root);
     }
     
-    // Foliage layers
-    const leafMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x1B4D1B,
-      roughness: 0.9
+    // Realistic foliage layers
+    const leafMaterial = new THREE.MeshPhysicalMaterial({ 
+      color: 0x1A4A1A,
+      roughness: 0.88,
+      metalness: 0,
+      sheen: 0.3,
+      sheenRoughness: 0.7,
+      sheenColor: new THREE.Color(0x2A6A2A)
     });
-    const lightLeafMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x228B22,
-      roughness: 0.9
+    const lightLeafMaterial = new THREE.MeshPhysicalMaterial({ 
+      color: 0x208520,
+      roughness: 0.85,
+      metalness: 0,
+      sheen: 0.35,
+      sheenRoughness: 0.6,
+      sheenColor: new THREE.Color(0x30A530)
     });
     
     // Multiple foliage spheres for fuller look
@@ -1137,71 +1398,97 @@ function createForest() {
     scene.add(log);
   }
   
-  // === MOONLIT ATMOSPHERE ===
-  scene.background = new THREE.Color(0x0D1520);
-  scene.fog = new THREE.FogExp2(0x0D1520, 0.04);
+  // === REALISTIC MOONLIT FOREST ATMOSPHERE ===
+  scene.background = new THREE.Color(0x0A1018);
+  scene.fog = new THREE.FogExp2(0x0A1018, 0.035);
   
-  // Moonlight
-  const moonLight = new THREE.DirectionalLight(0xB0C4DE, 0.4);
-  moonLight.position.set(20, 30, 10);
+  // Main moonlight - soft blue-white
+  const moonLight = new THREE.DirectionalLight(0xC5D5E8, 0.55);
+  moonLight.position.set(25, 40, 15);
   moonLight.castShadow = true;
-  moonLight.shadow.mapSize.width = 2048;
-  moonLight.shadow.mapSize.height = 2048;
-  moonLight.shadow.camera.near = 0.5;
-  moonLight.shadow.camera.far = 100;
-  moonLight.shadow.camera.left = -40;
-  moonLight.shadow.camera.right = 40;
-  moonLight.shadow.camera.top = 40;
-  moonLight.shadow.camera.bottom = -40;
+  moonLight.shadow.mapSize.width = 4096;
+  moonLight.shadow.mapSize.height = 4096;
+  moonLight.shadow.camera.near = 0.1;
+  moonLight.shadow.camera.far = 120;
+  moonLight.shadow.camera.left = -50;
+  moonLight.shadow.camera.right = 50;
+  moonLight.shadow.camera.top = 50;
+  moonLight.shadow.camera.bottom = -50;
+  moonLight.shadow.bias = -0.0002;
+  moonLight.shadow.normalBias = 0.02;
+  moonLight.shadow.radius = 3;
   scene.add(moonLight);
   
-  // Ambient night light
-  const nightAmbient = new THREE.AmbientLight(0x2F3A4A, 0.3);
+  // Secondary moon fill - softer
+  const moonFill = new THREE.DirectionalLight(0x8090A8, 0.2);
+  moonFill.position.set(-15, 20, -10);
+  scene.add(moonFill);
+  
+  // Ambient night light - deep blue
+  const nightAmbient = new THREE.AmbientLight(0x1A2535, 0.35);
   scene.add(nightAmbient);
   
-  // Hemisphere for sky/ground color
-  const hemiLight = new THREE.HemisphereLight(0x1A2030, 0x1B2D1B, 0.2);
+  // Hemisphere for natural sky/ground bounce
+  const hemiLight = new THREE.HemisphereLight(0x1A2535, 0x0A150A, 0.3);
   scene.add(hemiLight);
+  
+  // Firefly-like point lights scattered
+  for (let i = 0; i < 8; i++) {
+    const firefly = new THREE.PointLight(0xE8FF70, 0.3, 5);
+    firefly.position.set(
+      (Math.random() - 0.5) * 40,
+      0.5 + Math.random() * 2,
+      (Math.random() - 0.5) * 40
+    );
+    scene.add(firefly);
+  }
 }
 
-// Create Twolegplace (alley) environment - Gritty urban atmosphere
+// Create Twolegplace (alley) environment - ULTRA-REALISTIC urban atmosphere
 function createTwolegplace() {
-  // === GROUND - Cracked concrete and asphalt ===
+  // === GROUND - Realistic wet concrete and asphalt ===
   const groundBase = new THREE.Mesh(
-    new THREE.PlaneGeometry(60, 60),
-    new THREE.MeshStandardMaterial({ 
-      color: 0x3A3A3A,
-      roughness: 0.95
+    new THREE.PlaneGeometry(65, 65),
+    new THREE.MeshPhysicalMaterial({ 
+      color: 0x383838,
+      roughness: 0.92,
+      metalness: 0.02,
+      clearcoat: 0.1,
+      clearcoatRoughness: 0.8
     })
   );
   groundBase.rotation.x = -Math.PI / 2;
   groundBase.receiveShadow = true;
   scene.add(groundBase);
   
-  // Asphalt patches and cracks
-  const patchColors = [0x2D2D2D, 0x404040, 0x353535, 0x4A4A4A];
-  for (let i = 0; i < 50; i++) {
-    const x = (Math.random() - 0.5) * 50;
-    const z = (Math.random() - 0.5) * 50;
+  // Realistic asphalt patches with variation
+  const patchColors = [0x282828, 0x3D3D3D, 0x333333, 0x454545, 0x2A2A2A];
+  for (let i = 0; i < 70; i++) {
+    const x = (Math.random() - 0.5) * 55;
+    const z = (Math.random() - 0.5) * 55;
     const patch = new THREE.Mesh(
-      new THREE.PlaneGeometry(1 + Math.random() * 2, 0.5 + Math.random()),
-      new THREE.MeshStandardMaterial({ 
+      new THREE.PlaneGeometry(0.8 + Math.random() * 2.5, 0.4 + Math.random() * 1.2),
+      new THREE.MeshPhysicalMaterial({ 
         color: patchColors[Math.floor(Math.random() * patchColors.length)],
-        roughness: 0.9
+        roughness: 0.88 + Math.random() * 0.1,
+        metalness: 0.01
       })
     );
     patch.rotation.x = -Math.PI / 2;
     patch.rotation.z = Math.random() * Math.PI;
-    patch.position.set(x, 0.01, z);
+    patch.position.set(x, 0.008, z);
     scene.add(patch);
   }
   
-  // Puddles
+  // Realistic wet puddles with reflections
   const puddleMaterial = new THREE.MeshPhysicalMaterial({
-    color: 0x2A3540,
-    roughness: 0.1,
-    metalness: 0.3,
-    clearcoat: 1.0
+    color: 0x1A2530,
+    roughness: 0.02,
+    metalness: 0.15,
+    clearcoat: 1.0,
+    clearcoatRoughness: 0.02,
+    reflectivity: 0.9,
+    ior: 1.33
   });
   
   for (let i = 0; i < 8; i++) {
@@ -1452,40 +1739,76 @@ function createTwolegplace() {
   lamp2.position.set(-6, 0, -12);
   scene.add(lamp2);
   
-  // === DARK URBAN ATMOSPHERE ===
-  scene.background = new THREE.Color(0x12141A);
-  scene.fog = new THREE.FogExp2(0x12141A, 0.05);
+  // === REALISTIC DARK URBAN ATMOSPHERE ===
+  scene.background = new THREE.Color(0x0E1015);
+  scene.fog = new THREE.FogExp2(0x0E1015, 0.045);
   
-  // Dim ambient
-  const ambientLight = new THREE.AmbientLight(0x3A4050, 0.3);
+  // Dim ambient - city glow
+  const ambientLight = new THREE.AmbientLight(0x2A3040, 0.28);
   scene.add(ambientLight);
   
-  // Slight moonlight
-  const moonLight = new THREE.DirectionalLight(0x6080A0, 0.2);
-  moonLight.position.set(-10, 20, 10);
+  // Moonlight - cool blue
+  const moonLight = new THREE.DirectionalLight(0x7090B0, 0.25);
+  moonLight.position.set(-12, 25, 12);
   moonLight.castShadow = true;
-  moonLight.shadow.mapSize.width = 2048;
-  moonLight.shadow.mapSize.height = 2048;
+  moonLight.shadow.mapSize.width = 4096;
+  moonLight.shadow.mapSize.height = 4096;
+  moonLight.shadow.bias = -0.0002;
+  moonLight.shadow.normalBias = 0.02;
+  moonLight.shadow.radius = 2;
   scene.add(moonLight);
+  
+  // Hemisphere for urban sky pollution
+  const hemiLight = new THREE.HemisphereLight(0x303540, 0x1A1A20, 0.2);
+  scene.add(hemiLight);
+  
+  // Neon sign glow - adds atmosphere
+  const neonGlow = new THREE.PointLight(0xFF3366, 0.4, 15);
+  neonGlow.position.set(-8, 3, -8);
+  scene.add(neonGlow);
+  
+  const neonGlow2 = new THREE.PointLight(0x33CCFF, 0.3, 12);
+  neonGlow2.position.set(10, 2.5, -5);
+  scene.add(neonGlow2);
 }
 
-// Create high-quality realistic cat figure
+// Create ULTRA-REALISTIC cat figure with fur simulation
 function createCatFigure(x, y, z, color, name, hasWhitePaws = false) {
   const group = new THREE.Group();
   
-  // Fur-like material
-  const furMaterial = new THREE.MeshStandardMaterial({ 
-    color,
-    roughness: 0.95,
-    metalness: 0
+  // Realistic fur material with subsurface scattering feel
+  const baseColor = new THREE.Color(color);
+  const furMaterial = new THREE.MeshPhysicalMaterial({ 
+    color: baseColor,
+    roughness: 0.88,
+    metalness: 0,
+    sheen: 0.6,
+    sheenRoughness: 0.7,
+    sheenColor: new THREE.Color(color).multiplyScalar(1.3),
+    clearcoat: 0.05,
+    clearcoatRoughness: 0.8
   });
   
-  // Slightly darker shade for depth
-  const darkerColor = new THREE.Color(color).multiplyScalar(0.8);
-  const darkFurMaterial = new THREE.MeshStandardMaterial({
+  // Darker shade for depth/underbelly
+  const darkerColor = new THREE.Color(color).multiplyScalar(0.75);
+  const darkFurMaterial = new THREE.MeshPhysicalMaterial({
     color: darkerColor,
-    roughness: 0.95,
-    metalness: 0
+    roughness: 0.92,
+    metalness: 0,
+    sheen: 0.4,
+    sheenRoughness: 0.8,
+    sheenColor: darkerColor
+  });
+  
+  // Lighter highlights
+  const lighterColor = new THREE.Color(color).multiplyScalar(1.15);
+  const lightFurMaterial = new THREE.MeshPhysicalMaterial({
+    color: lighterColor,
+    roughness: 0.85,
+    metalness: 0,
+    sheen: 0.7,
+    sheenRoughness: 0.6,
+    sheenColor: lighterColor
   });
   
   // === BODY - Realistic cat proportions ===
@@ -1601,94 +1924,187 @@ function createCatFigure(x, y, z, color, name, hasWhitePaws = false) {
   earInnerR.rotation.set(-0.2, 0.15, 0.2);
   headGroup.add(earInnerR);
   
-  // === EYES - Realistic cat eyes ===
+  // === EYES - ULTRA-REALISTIC cat eyes ===
   const eyeColors = {
-    'Tiny': 0x87CEEB,    // Ice blue
-    'Scourge': 0x87CEEB,
-    'Quince': 0x90EE90,  // Soft green
-    'Socks': 0xDAA520,   // Amber
-    'Ruby': 0xB8860B     // Dark amber
+    'Tiny': 0x7EC8E3,    // Ice blue
+    'Scourge': 0x7EC8E3,
+    'Quince': 0x7CBA6D,  // Soft green
+    'Socks': 0xD4A520,   // Rich amber
+    'Ruby': 0xC87A2A    // Deep amber
   };
-  const eyeColor = eyeColors[name] || 0xFFD700;
-  
-  // Eye sockets (slight indent)
-  const eyeSocketMat = new THREE.MeshStandardMaterial({ color: darkerColor, roughness: 0.9 });
+  const eyeColor = eyeColors[name] || 0xE5B830;
   
   [-1, 1].forEach(side => {
     const socketX = side * 0.09;
     
-    // Eye white/sclera
-    const sclera = new THREE.Mesh(
-      new THREE.SphereGeometry(0.055, 32, 32),
-      new THREE.MeshStandardMaterial({ color: 0xFFFFF0, roughness: 0.3 })
+    // Eye socket shadow
+    const socket = new THREE.Mesh(
+      new THREE.SphereGeometry(0.062, 32, 32),
+      new THREE.MeshStandardMaterial({ color: darkerColor, roughness: 0.95 })
     );
-    sclera.scale.set(1, 0.7, 0.5);
+    socket.scale.set(1, 0.65, 0.45);
+    socket.position.set(socketX, 0.048, 0.175);
+    headGroup.add(socket);
+    
+    // Eye white/sclera with realistic wetness
+    const sclera = new THREE.Mesh(
+      new THREE.SphereGeometry(0.055, 48, 48),
+      new THREE.MeshPhysicalMaterial({ 
+        color: 0xFFFCF5, 
+        roughness: 0.15,
+        metalness: 0.02,
+        clearcoat: 0.8,
+        clearcoatRoughness: 0.1
+      })
+    );
+    sclera.scale.set(1, 0.72, 0.52);
     sclera.position.set(socketX, 0.05, 0.18);
     headGroup.add(sclera);
     
-    // Iris
+    // Iris with depth - realistic glass-like material
+    const irisMat = new THREE.MeshPhysicalMaterial({ 
+      color: eyeColor, 
+      roughness: 0.15,
+      metalness: 0.1,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.05,
+      reflectivity: 0.5
+    });
     const iris = new THREE.Mesh(
-      new THREE.CircleGeometry(0.04, 32),
-      new THREE.MeshStandardMaterial({ color: eyeColor, roughness: 0.3 })
+      new THREE.CircleGeometry(0.042, 48),
+      irisMat
     );
-    iris.position.set(socketX, 0.05, 0.21);
+    iris.position.set(socketX, 0.05, 0.207);
     headGroup.add(iris);
     
-    // Pupil (vertical slit)
+    // Iris detail ring
+    const irisRing = new THREE.Mesh(
+      new THREE.RingGeometry(0.028, 0.042, 48),
+      new THREE.MeshPhysicalMaterial({ 
+        color: new THREE.Color(eyeColor).multiplyScalar(0.7), 
+        roughness: 0.2,
+        clearcoat: 0.9
+      })
+    );
+    irisRing.position.set(socketX, 0.05, 0.208);
+    headGroup.add(irisRing);
+    
+    // Pupil (vertical slit) - deep black
     const pupilShape = new THREE.Shape();
-    pupilShape.ellipse(0, 0, 0.008, 0.03, 0, Math.PI * 2);
+    pupilShape.ellipse(0, 0, 0.007, 0.032, 0, Math.PI * 2);
     const pupilGeom = new THREE.ShapeGeometry(pupilShape);
     const pupil = new THREE.Mesh(
       pupilGeom,
-      new THREE.MeshBasicMaterial({ color: 0x000000 })
+      new THREE.MeshBasicMaterial({ color: 0x050505 })
     );
-    pupil.position.set(socketX, 0.05, 0.215);
+    pupil.position.set(socketX, 0.05, 0.21);
     headGroup.add(pupil);
     
-    // Eye shine/reflection
+    // Cornea - transparent glossy layer over eye
+    const cornea = new THREE.Mesh(
+      new THREE.SphereGeometry(0.052, 48, 48, 0, Math.PI * 2, 0, Math.PI / 2),
+      new THREE.MeshPhysicalMaterial({
+        color: 0xFFFFFF,
+        transparent: true,
+        opacity: 0.15,
+        roughness: 0.02,
+        metalness: 0,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.02,
+        ior: 1.4
+      })
+    );
+    cornea.rotation.x = Math.PI / 2;
+    cornea.scale.set(1, 0.5, 0.7);
+    cornea.position.set(socketX, 0.05, 0.2);
+    headGroup.add(cornea);
+    
+    // Primary eye shine/reflection
     const shine = new THREE.Mesh(
-      new THREE.CircleGeometry(0.012, 16),
+      new THREE.CircleGeometry(0.014, 24),
       new THREE.MeshBasicMaterial({ color: 0xFFFFFF })
     );
-    shine.position.set(socketX + 0.015, 0.065, 0.22);
+    shine.position.set(socketX + 0.012, 0.062, 0.215);
     headGroup.add(shine);
+    
+    // Secondary smaller reflection
+    const shine2 = new THREE.Mesh(
+      new THREE.CircleGeometry(0.006, 16),
+      new THREE.MeshBasicMaterial({ color: 0xFFFFFF })
+    );
+    shine2.position.set(socketX - 0.015, 0.04, 0.214);
+    headGroup.add(shine2);
   });
   
-  // === NOSE - Detailed cat nose ===
+  // === NOSE - Ultra-realistic wet cat nose ===
   const noseShape = new THREE.Shape();
   noseShape.moveTo(0, 0);
-  noseShape.lineTo(-0.025, 0.015);
-  noseShape.quadraticCurveTo(-0.03, 0.03, -0.02, 0.04);
-  noseShape.lineTo(0.02, 0.04);
-  noseShape.quadraticCurveTo(0.03, 0.03, 0.025, 0.015);
+  noseShape.lineTo(-0.028, 0.018);
+  noseShape.quadraticCurveTo(-0.035, 0.035, -0.022, 0.045);
+  noseShape.lineTo(0.022, 0.045);
+  noseShape.quadraticCurveTo(0.035, 0.035, 0.028, 0.018);
   noseShape.lineTo(0, 0);
   
   const noseGeom = new THREE.ExtrudeGeometry(noseShape, {
-    depth: 0.015,
+    depth: 0.018,
     bevelEnabled: true,
-    bevelThickness: 0.005,
-    bevelSize: 0.005,
-    bevelSegments: 2
+    bevelThickness: 0.006,
+    bevelSize: 0.006,
+    bevelSegments: 4
   });
   
-  const noseMat = new THREE.MeshStandardMaterial({ 
-    color: 0xE8A0A0,
-    roughness: 0.4,
-    metalness: 0.1
+  // Realistic wet nose leather
+  const noseMat = new THREE.MeshPhysicalMaterial({ 
+    color: 0xD48888,
+    roughness: 0.25,
+    metalness: 0.05,
+    clearcoat: 0.7,
+    clearcoatRoughness: 0.15,
+    sheen: 0.3
   });
   const nose = new THREE.Mesh(noseGeom, noseMat);
   nose.rotation.x = Math.PI / 2;
   nose.position.set(0, -0.02, 0.26);
+  nose.castShadow = true;
   headGroup.add(nose);
   
-  // Mouth line
-  const mouthCurve = new THREE.QuadraticBezierCurve3(
-    new THREE.Vector3(-0.03, -0.08, 0.22),
-    new THREE.Vector3(0, -0.1, 0.24),
-    new THREE.Vector3(0.03, -0.08, 0.22)
+  // Nose highlight/wetness
+  const noseHighlight = new THREE.Mesh(
+    new THREE.SphereGeometry(0.008, 16, 16),
+    new THREE.MeshBasicMaterial({ color: 0xFFFFFF, transparent: true, opacity: 0.5 })
   );
-  const mouthGeom = new THREE.TubeGeometry(mouthCurve, 12, 0.004, 8, false);
-  const mouth = new THREE.Mesh(mouthGeom, new THREE.MeshStandardMaterial({ color: 0x3D2817 }));
+  noseHighlight.scale.set(1, 0.5, 0.5);
+  noseHighlight.position.set(0.005, 0.01, 0.275);
+  headGroup.add(noseHighlight);
+  
+  // Nostrils
+  [-1, 1].forEach(side => {
+    const nostril = new THREE.Mesh(
+      new THREE.SphereGeometry(0.006, 12, 12),
+      new THREE.MeshBasicMaterial({ color: 0x2A1515 })
+    );
+    nostril.scale.set(1.2, 0.5, 0.8);
+    nostril.position.set(side * 0.012, -0.008, 0.27);
+    headGroup.add(nostril);
+  });
+  
+  // Mouth/philtrum line
+  const mouthCurve = new THREE.QuadraticBezierCurve3(
+    new THREE.Vector3(-0.032, -0.08, 0.22),
+    new THREE.Vector3(0, -0.1, 0.24),
+    new THREE.Vector3(0.032, -0.08, 0.22)
+  );
+  const mouthGeom = new THREE.TubeGeometry(mouthCurve, 16, 0.003, 8, false);
+  const mouth = new THREE.Mesh(mouthGeom, new THREE.MeshStandardMaterial({ color: 0x2A1A10, roughness: 0.8 }));
+  
+  // Philtrum (line from nose to mouth)
+  const philtrumCurve = new THREE.LineCurve3(
+    new THREE.Vector3(0, -0.03, 0.265),
+    new THREE.Vector3(0, -0.08, 0.24)
+  );
+  const philtrumGeom = new THREE.TubeGeometry(philtrumCurve, 8, 0.002, 6, false);
+  const philtrum = new THREE.Mesh(philtrumGeom, new THREE.MeshStandardMaterial({ color: 0xC07878, roughness: 0.6 }));
+  headGroup.add(philtrum);
   headGroup.add(mouth);
   
   // === WHISKERS ===
