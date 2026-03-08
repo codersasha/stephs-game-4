@@ -81,6 +81,8 @@ function init() {
   emoteWheel.classList.add('hidden');
   mobileControls.classList.add('hidden');
   interactHint.classList.add('hidden');
+  document.getElementById('emotions-panel').classList.add('hidden');
+  document.getElementById('help-panel').classList.add('hidden');
   
   simulateLoading();
   setupEventListeners();
@@ -151,12 +153,56 @@ function setupEventListeners() {
   document.addEventListener('keydown', onKeyDown);
   document.addEventListener('keyup', onKeyUp);
   
-  // Emote buttons
+  // Emote buttons (old wheel)
   document.querySelectorAll('.emote-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const emote = btn.dataset.emote;
       showEmote(emote);
       emoteWheel.classList.add('hidden');
+    });
+  });
+  
+  // New action buttons
+  document.getElementById('btn-sit').addEventListener('click', () => {
+    toggleSit();
+  });
+  
+  document.getElementById('btn-lie').addEventListener('click', () => {
+    toggleLieDown();
+  });
+  
+  document.getElementById('btn-jump').addEventListener('click', () => {
+    jump();
+  });
+  
+  document.getElementById('btn-meow').addEventListener('click', () => {
+    GameData.SoundManager.playMeow();
+    showEmote('meow');
+  });
+  
+  document.getElementById('btn-emotions').addEventListener('click', () => {
+    const panel = document.getElementById('emotions-panel');
+    panel.classList.toggle('hidden');
+  });
+  
+  document.getElementById('close-emotions').addEventListener('click', () => {
+    document.getElementById('emotions-panel').classList.add('hidden');
+  });
+  
+  document.getElementById('btn-help').addEventListener('click', () => {
+    document.getElementById('help-panel').classList.remove('hidden');
+  });
+  
+  document.getElementById('close-help-panel').addEventListener('click', () => {
+    document.getElementById('help-panel').classList.add('hidden');
+  });
+  
+  // New emotion buttons (big panel)
+  document.querySelectorAll('.emotion-btn-big').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const emote = btn.dataset.emote;
+      showEmote(emote);
+      document.getElementById('emotions-panel').classList.add('hidden');
     });
   });
   
@@ -724,8 +770,21 @@ function onKeyDown(e) {
       GameData.SoundManager.playMeow();
       showEmote('meow');
       break;
-    case 'KeyC': toggleLieDown(); break;
-    case 'Escape': togglePause(); break;
+    case 'KeyC': toggleSit(); break;
+    case 'KeyX': toggleLieDown(); break;
+    case 'KeyH': 
+      document.getElementById('help-panel').classList.toggle('hidden');
+      break;
+    case 'Escape': 
+      // Close any open panels first
+      if (!document.getElementById('help-panel').classList.contains('hidden')) {
+        document.getElementById('help-panel').classList.add('hidden');
+      } else if (!document.getElementById('emotions-panel').classList.contains('hidden')) {
+        document.getElementById('emotions-panel').classList.add('hidden');
+      } else {
+        togglePause();
+      }
+      break;
     
     // Emotions
     case 'Digit1': showEmote('happy'); break;
@@ -836,10 +895,32 @@ function jump() {
   }
 }
 
+// Sitting state
+let isSitting = false;
+
+function toggleSit() {
+  if (GameState.isLyingDown) {
+    GameState.isLyingDown = false;
+  }
+  isSitting = !isSitting;
+  if (isSitting) {
+    camera.position.y = 0.35; // Lower camera when sitting
+    showEmote('sitting');
+  } else {
+    camera.position.y = 0.5; // Normal standing height
+  }
+}
+
 function toggleLieDown() {
+  if (isSitting) {
+    isSitting = false;
+  }
   GameState.isLyingDown = !GameState.isLyingDown;
   if (GameState.isLyingDown) {
-    camera.position.y = 0.2;
+    camera.position.y = 0.15; // Very low - lying down
+    showEmote('tired');
+  } else {
+    camera.position.y = 0.5; // Normal standing height
   }
 }
 
@@ -860,7 +941,10 @@ function showEmote(emote) {
     scared: '😨',
     curious: '🤔',
     tired: '😴',
-    meow: '😺'
+    meow: '😺',
+    love: '😻',
+    nervous: '😰',
+    sitting: '🐱'
   };
   
   const icon = emotes[emote] || '😺';

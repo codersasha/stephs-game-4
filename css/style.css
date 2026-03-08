@@ -694,25 +694,248 @@ html, body {
   text-shadow: 0 0 20px rgba(0,0,0,0.8);
 }
 
-/* Mobile Controls */
+/* ============================================
+   Action Buttons (always visible during game)
+   ============================================ */
+#action-buttons {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+}
+
+.action-buttons-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.action-btn-game {
+  background: linear-gradient(180deg, rgba(50,50,70,0.9) 0%, rgba(30,30,50,0.95) 100%);
+  border: 2px solid rgba(135, 206, 235, 0.5);
+  border-radius: 12px;
+  padding: 12px 16px;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 70px;
+  transition: all 0.2s;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.action-btn-game:hover {
+  background: linear-gradient(180deg, rgba(70,70,100,0.95) 0%, rgba(50,50,80,0.98) 100%);
+  border-color: var(--color-ice);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(135, 206, 235, 0.3);
+}
+
+.action-btn-game:active {
+  transform: translateY(0);
+}
+
+.action-btn-game .btn-icon {
+  font-size: 24px;
+}
+
+.action-btn-game .btn-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ============================================
+   Emotions Panel
+   ============================================ */
+#emotions-panel {
+  position: absolute;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(10, 10, 30, 0.95);
+  border: 2px solid var(--color-ice);
+  border-radius: 20px;
+  padding: 20px;
+  z-index: 60;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+
+#emotions-panel.hidden {
+  display: none;
+}
+
+.emotions-panel-title {
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 15px;
+  color: var(--color-ice);
+}
+
+.emotions-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.emotion-btn-big {
+  background: rgba(255,255,255,0.1);
+  border: 2px solid rgba(255,255,255,0.2);
+  border-radius: 12px;
+  padding: 12px;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s;
+}
+
+.emotion-btn-big:hover {
+  background: rgba(135, 206, 235, 0.3);
+  border-color: var(--color-ice);
+  transform: scale(1.05);
+}
+
+.emotion-icon-big {
+  font-size: 32px;
+}
+
+.emotion-btn-big span:last-child {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.close-emotions-btn {
+  display: block;
+  width: 100%;
+  background: var(--color-accent);
+  border: none;
+  padding: 10px;
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.close-emotions-btn:hover {
+  background: var(--color-accent2);
+}
+
+/* ============================================
+   Help Panel
+   ============================================ */
+#help-panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.95);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+}
+
+#help-panel.hidden {
+  display: none;
+}
+
+.help-panel-content {
+  background: linear-gradient(180deg, #1a1a2e 0%, #0a0a12 100%);
+  border: 2px solid var(--color-ice);
+  border-radius: 20px;
+  padding: 30px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.help-panel-content h2 {
+  text-align: center;
+  font-size: 28px;
+  margin-bottom: 25px;
+  color: var(--color-ice);
+}
+
+.help-section {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.help-section:last-of-type {
+  border-bottom: none;
+}
+
+.help-section h3 {
+  font-size: 18px;
+  margin-bottom: 10px;
+  color: var(--color-accent);
+}
+
+.help-item {
+  font-size: 14px;
+  margin: 8px 0;
+  color: #ccc;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.help-item kbd {
+  background: #333;
+  padding: 4px 10px;
+  border-radius: 5px;
+  font-family: monospace;
+  font-size: 12px;
+  border: 1px solid #555;
+  min-width: 30px;
+  text-align: center;
+}
+
+.close-help-btn {
+  display: block;
+  width: 100%;
+  background: linear-gradient(135deg, var(--color-ice), #4a90a0);
+  border: none;
+  padding: 15px;
+  color: white;
+  font-size: 18px;
+  font-weight: 700;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+.close-help-btn:hover {
+  background: linear-gradient(135deg, #9ed8eb, var(--color-ice));
+}
+
+/* ============================================
+   Mobile Controls (joystick only)
+   ============================================ */
 #mobile-controls {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  pointer-events: none;
+  bottom: 100px;
+  left: 20px;
+  z-index: 50;
 }
 
 #mobile-controls.hidden {
   display: none;
-}
-
-#mobile-controls > * {
-  pointer-events: auto;
 }
 
 .joystick-container {
@@ -739,54 +962,37 @@ html, body {
   transition: transform 0.1s;
 }
 
-.mobile-buttons {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-}
-
-.mobile-btn {
-  background: rgba(255,255,255,0.2);
-  border: 2px solid rgba(255,255,255,0.4);
-  padding: 15px 20px;
-  font-size: 14px;
-  font-weight: 700;
-  color: white;
-  border-radius: 10px;
-  cursor: pointer;
-}
-
-.mobile-btn:active {
-  background: rgba(255,255,255,0.4);
-}
-
-/* Emote Wheel */
-#emote-wheel {
-  position: absolute;
-  bottom: 200px;
-  right: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-#emote-wheel.hidden {
-  display: none;
-}
-
-.emote-btn {
-  background: rgba(0,0,0,0.7);
-  border: 1px solid rgba(255,255,255,0.2);
-  padding: 10px 15px;
-  font-size: 14px;
-  color: white;
-  border-radius: 20px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.emote-btn:hover {
-  background: var(--color-accent);
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .action-buttons-row {
+    gap: 6px;
+  }
+  
+  .action-btn-game {
+    padding: 10px 12px;
+    min-width: 55px;
+  }
+  
+  .action-btn-game .btn-icon {
+    font-size: 20px;
+  }
+  
+  .action-btn-game .btn-label {
+    font-size: 9px;
+  }
+  
+  .emotions-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+  
+  .emotion-btn-big {
+    padding: 8px;
+  }
+  
+  .emotion-icon-big {
+    font-size: 24px;
+  }
 }
 
 /* Pause Menu */

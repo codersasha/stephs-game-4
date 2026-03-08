@@ -181,29 +181,123 @@
       </div>
     </div>
 
-    <!-- Mobile Controls -->
+    <!-- Action Buttons (always visible) -->
+    <div id="action-buttons">
+      <div class="action-buttons-row">
+        <button class="action-btn-game" id="btn-sit" title="Sit Down">
+          <span class="btn-icon">🐱</span>
+          <span class="btn-label">Sit</span>
+        </button>
+        <button class="action-btn-game" id="btn-lie" title="Lie Down">
+          <span class="btn-icon">😴</span>
+          <span class="btn-label">Lie Down</span>
+        </button>
+        <button class="action-btn-game" id="btn-jump" title="Jump">
+          <span class="btn-icon">⬆️</span>
+          <span class="btn-label">Jump</span>
+        </button>
+        <button class="action-btn-game" id="btn-meow" title="Meow!">
+          <span class="btn-icon">🔊</span>
+          <span class="btn-label">Meow</span>
+        </button>
+        <button class="action-btn-game" id="btn-emotions" title="Show Emotions">
+          <span class="btn-icon">😺</span>
+          <span class="btn-label">Emotions</span>
+        </button>
+        <button class="action-btn-game" id="btn-help" title="Help - How to Play">
+          <span class="btn-icon">❓</span>
+          <span class="btn-label">Help</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Emotions Panel -->
+    <div id="emotions-panel" class="hidden">
+      <div class="emotions-panel-title">How do you feel?</div>
+      <div class="emotions-grid">
+        <button class="emotion-btn-big" data-emote="happy">
+          <span class="emotion-icon-big">😊</span>
+          <span>Happy</span>
+        </button>
+        <button class="emotion-btn-big" data-emote="sad">
+          <span class="emotion-icon-big">😢</span>
+          <span>Sad</span>
+        </button>
+        <button class="emotion-btn-big" data-emote="angry">
+          <span class="emotion-icon-big">😠</span>
+          <span>Angry</span>
+        </button>
+        <button class="emotion-btn-big" data-emote="scared">
+          <span class="emotion-icon-big">😨</span>
+          <span>Scared</span>
+        </button>
+        <button class="emotion-btn-big" data-emote="curious">
+          <span class="emotion-icon-big">🤔</span>
+          <span>Curious</span>
+        </button>
+        <button class="emotion-btn-big" data-emote="tired">
+          <span class="emotion-icon-big">😴</span>
+          <span>Tired</span>
+        </button>
+        <button class="emotion-btn-big" data-emote="love">
+          <span class="emotion-icon-big">😻</span>
+          <span>Love</span>
+        </button>
+        <button class="emotion-btn-big" data-emote="nervous">
+          <span class="emotion-icon-big">😰</span>
+          <span>Nervous</span>
+        </button>
+      </div>
+      <button class="close-emotions-btn" id="close-emotions">Close</button>
+    </div>
+
+    <!-- Mobile Controls (joystick for movement) -->
     <div id="mobile-controls" class="hidden">
       <div class="joystick-container" id="joystick-container">
         <div class="joystick-base">
           <div class="joystick-stick" id="joystick-stick"></div>
         </div>
       </div>
-      <div class="mobile-buttons">
-        <button class="mobile-btn" id="mobile-jump">Jump</button>
-        <button class="mobile-btn" id="mobile-interact">Talk</button>
-        <button class="mobile-btn" id="mobile-emote">😺</button>
-        <button class="mobile-btn" id="mobile-meow">Meow!</button>
-      </div>
     </div>
 
-    <!-- Emote Wheel -->
-    <div id="emote-wheel" class="hidden">
-      <button class="emote-btn" data-emote="happy">😊 Happy</button>
-      <button class="emote-btn" data-emote="sad">😢 Sad</button>
-      <button class="emote-btn" data-emote="angry">😠 Angry</button>
-      <button class="emote-btn" data-emote="scared">😨 Scared</button>
-      <button class="emote-btn" data-emote="curious">🤔 Curious</button>
-      <button class="emote-btn" data-emote="tired">😴 Tired</button>
+    <!-- Help Panel - Shows all controls -->
+    <div id="help-panel" class="hidden">
+      <div class="help-panel-content">
+        <h2>🐱 How to Play</h2>
+        
+        <div class="help-section">
+          <h3>🎮 Moving Around</h3>
+          <div class="help-item"><kbd>W</kbd> Walk forward</div>
+          <div class="help-item"><kbd>A</kbd> Walk left</div>
+          <div class="help-item"><kbd>S</kbd> Walk backwards</div>
+          <div class="help-item"><kbd>D</kbd> Walk right</div>
+          <div class="help-item"><kbd>Shift</kbd> Run fast!</div>
+          <div class="help-item"><kbd>Mouse</kbd> Look around</div>
+        </div>
+
+        <div class="help-section">
+          <h3>🐾 Actions</h3>
+          <div class="help-item"><kbd>Space</kbd> or <strong>Jump button</strong> - Jump up</div>
+          <div class="help-item"><kbd>C</kbd> or <strong>Sit button</strong> - Sit down</div>
+          <div class="help-item"><kbd>X</kbd> or <strong>Lie Down button</strong> - Lie down and rest</div>
+          <div class="help-item"><kbd>Q</kbd> or <strong>Meow button</strong> - Meow!</div>
+          <div class="help-item"><kbd>E</kbd> - Talk to other cats</div>
+        </div>
+
+        <div class="help-section">
+          <h3>😺 Emotions</h3>
+          <div class="help-item">Click the <strong>Emotions button</strong> to show how you feel!</div>
+          <div class="help-item">Or press <kbd>1</kbd>-<kbd>6</kbd> for quick emotions</div>
+        </div>
+
+        <div class="help-section">
+          <h3>📖 Story</h3>
+          <div class="help-item">Click or press <kbd>Space</kbd> to continue dialogue</div>
+          <div class="help-item">Click on choices to pick what to say</div>
+        </div>
+
+        <button class="close-help-btn" id="close-help-panel">Got it!</button>
+      </div>
     </div>
 
     <!-- Pause Menu -->
