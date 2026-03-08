@@ -731,24 +731,48 @@ function onKeyUp(e) {
   }
 }
 
-// Movement
+// Movement - W forward, A left, S back, D right (relative to camera direction)
 function updateMovement(delta) {
   if (GameState.isPaused || GameState.isInDialogue || GameState.isInBattle || GameState.isLyingDown) return;
   
   const speed = isRunning ? 8 : 4;
-  const direction = new THREE.Vector3();
   
-  if (moveForward) direction.z -= 1;
-  if (moveBackward) direction.z += 1;
-  if (moveLeft) direction.x -= 1;
-  if (moveRight) direction.x += 1;
+  // Get the direction the camera is facing (ignore vertical tilt)
+  const cameraDirection = new THREE.Vector3();
+  camera.getWorldDirection(cameraDirection);
+  cameraDirection.y = 0; // Keep movement horizontal
+  cameraDirection.normalize();
   
-  direction.normalize();
-  direction.multiplyScalar(speed * delta);
+  // Get the right vector (perpendicular to camera direction)
+  const rightVector = new THREE.Vector3();
+  rightVector.crossVectors(cameraDirection, new THREE.Vector3(0, 1, 0));
+  rightVector.normalize();
   
-  // Apply to camera
-  camera.position.x += direction.x;
-  camera.position.z += direction.z;
+  // Calculate movement direction based on keys
+  const moveDirection = new THREE.Vector3(0, 0, 0);
+  
+  if (moveForward) {
+    moveDirection.add(cameraDirection); // W - move in direction camera faces
+  }
+  if (moveBackward) {
+    moveDirection.sub(cameraDirection); // S - move opposite to camera
+  }
+  if (moveLeft) {
+    moveDirection.sub(rightVector); // A - move left
+  }
+  if (moveRight) {
+    moveDirection.add(rightVector); // D - move right
+  }
+  
+  // Normalize and apply speed
+  if (moveDirection.length() > 0) {
+    moveDirection.normalize();
+    moveDirection.multiplyScalar(speed * delta);
+    
+    // Apply movement
+    camera.position.x += moveDirection.x;
+    camera.position.z += moveDirection.z;
+  }
   
   // Gravity
   playerVelocity.y -= 9.8 * delta;
@@ -968,80 +992,269 @@ function showNarrationSequence(narrations, callback) {
   showNext();
 }
 
-// Cutscene system for character introductions
+// Cutscene system - VISUAL cutscenes with actual graphics
 function showCutscene(cutsceneData, callback) {
   GameState.isInDialogue = true;
   let currentIndex = 0;
   
-  const cutsceneBox = document.getElementById('cutscene-box');
-  if (!cutsceneBox) {
-    // Create cutscene box if it doesn't exist
-    const box = document.createElement('div');
-    box.id = 'cutscene-box';
-    box.innerHTML = `
-      <div class="cutscene-content">
-        <div class="cutscene-icon" id="cutscene-icon"></div>
-        <div class="cutscene-name" id="cutscene-name"></div>
-        <div class="cutscene-title" id="cutscene-title"></div>
-        <div class="cutscene-desc" id="cutscene-desc"></div>
-      </div>
-      <div class="cutscene-continue">Tap or press Space to continue</div>
-    `;
-    box.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.95);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      color: white;
-      font-family: 'Nunito', sans-serif;
-    `;
-    document.body.appendChild(box);
+  // Create cutscene container
+  let cutsceneBox = document.getElementById('cutscene-box');
+  if (cutsceneBox) cutsceneBox.remove();
+  
+  const box = document.createElement('div');
+  box.id = 'cutscene-box';
+  box.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    z-index: 1000;
+    font-family: 'Nunito', sans-serif;
+    overflow: hidden;
+  `;
+  document.body.appendChild(box);
+  
+  // Create a separate Three.js scene for cutscenes
+  const cutsceneCanvas = document.createElement('canvas');
+  cutsceneCanvas.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%;';
+  box.appendChild(cutsceneCanvas);
+  
+  const cutsceneRenderer = new THREE.WebGLRenderer({ canvas: cutsceneCanvas, antialias: true });
+  cutsceneRenderer.setSize(window.innerWidth, window.innerHeight);
+  cutsceneRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  
+  const cutsceneScene = new THREE.Scene();
+  const cutsceneCamera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+  
+  // Lighting
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+  cutsceneScene.add(ambientLight);
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  dirLight.position.set(5, 10, 5);
+  cutsceneScene.add(dirLight);
+  
+  // Text overlay
+  const textOverlay = document.createElement('div');
+  textOverlay.id = 'cutscene-text-overlay';
+  textOverlay.style.cssText = `
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 800px;
+    background: rgba(0,0,0,0.8);
+    border: 2px solid #87CEEB;
+    border-radius: 15px;
+    padding: 25px;
+    text-align: center;
+    color: white;
+  `;
+  box.appendChild(textOverlay);
+  
+  // Function to create a cat for cutscene
+  function createCutsceneCat(color, x, z, eyeColor = 0xFFD700) {
+    const group = new THREE.Group();
+    const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.7 });
+    
+    // Body
+    const body = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), mat);
+    body.scale.set(1, 0.7, 1.3);
+    body.position.y = 0.35;
+    group.add(body);
+    
+    // Head
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.3, 32, 32), mat);
+    head.position.set(0, 0.6, 0.4);
+    group.add(head);
+    
+    // Ears
+    const earMat = mat;
+    const earL = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.2, 4), earMat);
+    earL.position.set(-0.15, 0.85, 0.35);
+    group.add(earL);
+    const earR = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.2, 4), earMat);
+    earR.position.set(0.15, 0.85, 0.35);
+    group.add(earR);
+    
+    // Eyes
+    const eyeMat = new THREE.MeshBasicMaterial({ color: eyeColor });
+    const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.06, 16, 16), eyeMat);
+    eyeL.position.set(-0.1, 0.65, 0.65);
+    group.add(eyeL);
+    const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.06, 16, 16), eyeMat);
+    eyeR.position.set(0.1, 0.65, 0.65);
+    group.add(eyeR);
+    
+    // Tail
+    const tailCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(0, 0.3, -0.5),
+      new THREE.Vector3(0, 0.5, -0.7),
+      new THREE.Vector3(0.1, 0.7, -0.5)
+    ]);
+    const tail = new THREE.Mesh(new THREE.TubeGeometry(tailCurve, 12, 0.05, 8, false), mat);
+    group.add(tail);
+    
+    group.position.set(x, 0, z);
+    return group;
+  }
+  
+  // Function to setup different scene backgrounds
+  function setupCutsceneBackground(type) {
+    // Clear existing objects
+    while(cutsceneScene.children.length > 2) { // Keep lights
+      cutsceneScene.remove(cutsceneScene.children[2]);
+    }
+    
+    if (type === 'house_exterior') {
+      cutsceneScene.background = new THREE.Color(0x87CEEB); // Blue sky
+      
+      // Ground
+      const ground = new THREE.Mesh(
+        new THREE.PlaneGeometry(50, 50),
+        new THREE.MeshStandardMaterial({ color: 0x228B22 })
+      );
+      ground.rotation.x = -Math.PI / 2;
+      cutsceneScene.add(ground);
+      
+      // House
+      const house = new THREE.Mesh(
+        new THREE.BoxGeometry(8, 6, 8),
+        new THREE.MeshStandardMaterial({ color: 0xDEB887 })
+      );
+      house.position.set(0, 3, -5);
+      cutsceneScene.add(house);
+      
+      // Roof
+      const roof = new THREE.Mesh(
+        new THREE.ConeGeometry(7, 3, 4),
+        new THREE.MeshStandardMaterial({ color: 0x8B4513 })
+      );
+      roof.position.set(0, 7.5, -5);
+      roof.rotation.y = Math.PI / 4;
+      cutsceneScene.add(roof);
+      
+      // Door
+      const door = new THREE.Mesh(
+        new THREE.BoxGeometry(1.5, 3, 0.1),
+        new THREE.MeshStandardMaterial({ color: 0x654321 })
+      );
+      door.position.set(0, 1.5, -1);
+      cutsceneScene.add(door);
+      
+      // Windows
+      const winMat = new THREE.MeshBasicMaterial({ color: 0xFFFF99 });
+      const win1 = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.5), winMat);
+      win1.position.set(-2, 4, -0.9);
+      cutsceneScene.add(win1);
+      const win2 = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.5), winMat);
+      win2.position.set(2, 4, -0.9);
+      cutsceneScene.add(win2);
+      
+      cutsceneCamera.position.set(0, 5, 12);
+      cutsceneCamera.lookAt(0, 3, -5);
+      
+    } else if (type === 'house_interior') {
+      cutsceneScene.background = new THREE.Color(0xFFF8E7); // Warm interior
+      
+      // Floor
+      const floor = new THREE.Mesh(
+        new THREE.PlaneGeometry(15, 15),
+        new THREE.MeshStandardMaterial({ color: 0xB8860B })
+      );
+      floor.rotation.x = -Math.PI / 2;
+      cutsceneScene.add(floor);
+      
+      // Walls
+      const wallMat = new THREE.MeshStandardMaterial({ color: 0xFFF8DC });
+      const backWall = new THREE.Mesh(new THREE.PlaneGeometry(15, 8), wallMat);
+      backWall.position.set(0, 4, -7);
+      cutsceneScene.add(backWall);
+      
+      // Couch
+      const couchMat = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
+      const couch = new THREE.Mesh(new THREE.BoxGeometry(5, 1, 2), couchMat);
+      couch.position.set(-2, 0.5, -4);
+      cutsceneScene.add(couch);
+      const couchBack = new THREE.Mesh(new THREE.BoxGeometry(5, 1.5, 0.3), couchMat);
+      couchBack.position.set(-2, 1.25, -4.85);
+      cutsceneScene.add(couchBack);
+      
+      // Cat basket
+      const basket = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.8, 1, 0.4, 24),
+        new THREE.MeshStandardMaterial({ color: 0x8B7355 })
+      );
+      basket.position.set(3, 0.2, -3);
+      cutsceneScene.add(basket);
+      
+      // Window with light
+      const window1 = new THREE.Mesh(
+        new THREE.PlaneGeometry(3, 2.5),
+        new THREE.MeshBasicMaterial({ color: 0x87CEEB })
+      );
+      window1.position.set(0, 5, -6.9);
+      cutsceneScene.add(window1);
+      
+      cutsceneCamera.position.set(0, 4, 6);
+      cutsceneCamera.lookAt(0, 1, -3);
+    }
   }
   
   function showNext() {
     if (currentIndex >= cutsceneData.length) {
-      const box = document.getElementById('cutscene-box');
-      if (box) box.remove();
-      GameState.isInDialogue = false;
-      if (callback) callback();
+      cleanupAndFinish();
       return;
     }
     
-    const scene = cutsceneData[currentIndex];
-    const box = document.getElementById('cutscene-box');
+    const sceneData = cutsceneData[currentIndex];
     
-    if (scene.type === 'scene') {
-      box.innerHTML = `
-        <div style="text-align: center; max-width: 600px; padding: 40px;">
-          <p style="font-size: 28px; line-height: 1.8; font-style: italic; color: #ccc;">
-            ${scene.text}
-          </p>
-        </div>
-        <div style="font-size: 14px; color: #666; margin-top: 30px;">Tap or press Space to continue</div>
+    if (sceneData.type === 'scene') {
+      setupCutsceneBackground(sceneData.background);
+      textOverlay.innerHTML = `
+        <p style="font-size: 22px; line-height: 1.6; margin: 0;">${sceneData.text}</p>
+        <p style="font-size: 13px; color: #888; margin-top: 15px;">Click or press Space to continue</p>
       `;
-    } else if (scene.type === 'character_intro') {
-      const isPlayer = scene.isPlayer;
-      box.innerHTML = `
-        <div style="text-align: center; padding: 40px;">
-          <div style="font-size: 100px; margin-bottom: 20px; ${isPlayer ? 'animation: glow 1s ease-in-out infinite alternate;' : ''}">${scene.icon}</div>
-          <div style="font-size: 48px; font-weight: 900; color: ${isPlayer ? '#87CEEB' : '#fff'}; margin-bottom: 10px; font-family: 'Creepster', cursive;">${scene.name}</div>
-          <div style="font-size: 20px; color: ${isPlayer ? '#87CEEB' : '#e94560'}; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 3px;">${scene.title}</div>
-          <div style="font-size: 18px; color: #aaa; max-width: 400px; margin: 0 auto;">${scene.description}</div>
-        </div>
-        <div style="font-size: 14px; color: #666; margin-top: 30px;">Tap or press Space to continue</div>
-        <style>
-          @keyframes glow {
-            from { text-shadow: 0 0 20px rgba(135, 206, 235, 0.5); }
-            to { text-shadow: 0 0 40px rgba(135, 206, 235, 0.9), 0 0 60px rgba(135, 206, 235, 0.5); }
-          }
-        </style>
+    } else if (sceneData.type === 'character_intro') {
+      // Show the cat being introduced in the scene
+      setupCutsceneBackground('house_interior');
+      
+      // Add the character cat in the center
+      let catColor, eyeColor;
+      switch(sceneData.name) {
+        case 'Quince': catColor = 0xFFE4B5; eyeColor = 0x90EE90; break;
+        case 'Socks': catColor = 0x555555; eyeColor = 0xFFD700; break;
+        case 'Ruby': catColor = 0x8B4513; eyeColor = 0x90EE90; break;
+        case 'Tiny': catColor = 0x1a1a1a; eyeColor = 0x87CEEB; break;
+        default: catColor = 0x888888; eyeColor = 0xFFD700;
+      }
+      
+      const cat = createCutsceneCat(catColor, 0, -2, eyeColor);
+      cat.scale.set(2, 2, 2); // Make it bigger for intro
+      cat.position.y = 0;
+      cutsceneScene.add(cat);
+      
+      // If it's Tiny, add the white paw
+      if (sceneData.name === 'Tiny') {
+        const whitePaw = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.12, 0.15, 0.3, 8),
+          new THREE.MeshStandardMaterial({ color: 0xFFFFFF })
+        );
+        whitePaw.position.set(-0.25, 0.15, 0.3);
+        cat.add(whitePaw);
+      }
+      
+      cutsceneCamera.position.set(0, 2, 3);
+      cutsceneCamera.lookAt(0, 0.8, -2);
+      
+      const isPlayer = sceneData.isPlayer;
+      textOverlay.innerHTML = `
+        <div style="font-size: 36px; font-weight: 900; color: ${isPlayer ? '#87CEEB' : '#fff'}; margin-bottom: 5px; font-family: 'Creepster', cursive;">${sceneData.name}</div>
+        <div style="font-size: 16px; color: ${isPlayer ? '#87CEEB' : '#e94560'}; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 3px;">${sceneData.title}</div>
+        <div style="font-size: 16px; color: #ccc;">${sceneData.description}</div>
+        <p style="font-size: 13px; color: #888; margin-top: 15px;">Click or press Space to continue</p>
       `;
     }
     
@@ -1049,17 +1262,33 @@ function showCutscene(cutsceneData, callback) {
     currentIndex++;
   }
   
+  // Animation loop for cutscene
+  let cutsceneAnimating = true;
+  function animateCutscene() {
+    if (!cutsceneAnimating) return;
+    requestAnimationFrame(animateCutscene);
+    cutsceneRenderer.render(cutsceneScene, cutsceneCamera);
+  }
+  animateCutscene();
+  
+  function cleanupAndFinish() {
+    cutsceneAnimating = false;
+    document.removeEventListener('click', handleCutsceneContinue);
+    document.removeEventListener('keydown', handleCutsceneContinue);
+    const box = document.getElementById('cutscene-box');
+    if (box) box.remove();
+    GameState.isInDialogue = false;
+    if (callback) callback();
+  }
+  
   const handleCutsceneContinue = (e) => {
     if (e.type === 'keydown' && e.code !== 'Space') return;
+    if (e.target.tagName === 'BUTTON') return;
+    
     if (currentIndex < cutsceneData.length) {
       showNext();
     } else {
-      document.removeEventListener('click', handleCutsceneContinue);
-      document.removeEventListener('keydown', handleCutsceneContinue);
-      const box = document.getElementById('cutscene-box');
-      if (box) box.remove();
-      GameState.isInDialogue = false;
-      if (callback) callback();
+      cleanupAndFinish();
     }
   };
   
