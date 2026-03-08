@@ -2448,6 +2448,29 @@ function showCutscene(cutsceneData, callback) {
     eyeR.position.set(0.1, 0.65, 0.65);
     group.add(eyeR);
     
+    // Legs - so cats aren't floating!
+    const legGeom = new THREE.CylinderGeometry(0.06, 0.08, 0.25, 8);
+    const legPositions = [
+      [-0.2, 0.12, 0.25],  // Front left
+      [0.2, 0.12, 0.25],   // Front right
+      [-0.2, 0.12, -0.25], // Back left
+      [0.2, 0.12, -0.25]   // Back right
+    ];
+    legPositions.forEach(pos => {
+      const leg = new THREE.Mesh(legGeom, mat);
+      leg.position.set(pos[0], pos[1], pos[2]);
+      group.add(leg);
+    });
+    
+    // Paws
+    const pawGeom = new THREE.SphereGeometry(0.07, 8, 8);
+    legPositions.forEach(pos => {
+      const paw = new THREE.Mesh(pawGeom, mat);
+      paw.scale.y = 0.5;
+      paw.position.set(pos[0], 0.02, pos[2]);
+      group.add(paw);
+    });
+    
     // Tail
     const tailCurve = new THREE.CatmullRomCurve3([
       new THREE.Vector3(0, 0.3, -0.5),
