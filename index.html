@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Warrior Cats: The Rise of Scourge</title>
+  <meta name="description" content="Play as Tiny and experience the full story of The Rise of Scourge - from bullied kit to fearsome BloodClan leader.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐱</text></svg>">
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div id="loading-screen">
+    <div class="loading-content">
+      <div class="loading-paw">🐾</div>
+      <div class="loading-text">Loading...</div>
+      <div class="loading-bar">
+        <div class="loading-bar-fill" id="loading-bar-fill"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Title Screen -->
+  <div id="title-screen" class="screen hidden">
+    <div class="title-bg"></div>
+    <div class="title-content">
+      <div class="title-cat-silhouette">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <!-- Small black cat with white paw - Tiny/Scourge -->
+          <ellipse cx="100" cy="140" rx="45" ry="35" fill="#1a1a1a"/>
+          <circle cx="100" cy="90" r="35" fill="#1a1a1a"/>
+          <!-- Ears -->
+          <polygon points="75,65 65,30 85,55" fill="#1a1a1a"/>
+          <polygon points="125,65 135,30 115,55" fill="#1a1a1a"/>
+          <polygon points="75,62 68,38 82,55" fill="#2a2a2a"/>
+          <polygon points="125,62 132,38 118,55" fill="#2a2a2a"/>
+          <!-- Ice blue eyes -->
+          <ellipse cx="85" cy="85" rx="8" ry="10" fill="#87CEEB"/>
+          <ellipse cx="115" cy="85" rx="8" ry="10" fill="#87CEEB"/>
+          <ellipse cx="85" cy="85" rx="3" ry="6" fill="#111"/>
+          <ellipse cx="115" cy="85" rx="3" ry="6" fill="#111"/>
+          <!-- Nose -->
+          <ellipse cx="100" cy="100" rx="5" ry="4" fill="#333"/>
+          <!-- White paw -->
+          <ellipse cx="70" cy="165" rx="12" ry="8" fill="#f5f5f5"/>
+          <!-- Other paws -->
+          <ellipse cx="130" cy="165" rx="12" ry="8" fill="#1a1a1a"/>
+          <!-- Tail -->
+          <path d="M145,140 Q175,120 170,100" stroke="#1a1a1a" stroke-width="12" fill="none" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="title-warrior-cats">WARRIOR CATS</div>
+      <h1 class="title-main">The Rise of Scourge</h1>
+      <p class="title-subtitle">Experience Tiny's journey from bullied kit to fearsome leader</p>
+      <button class="start-btn" id="start-btn">
+        <span class="start-btn-text">Start Game</span>
+        <span class="start-btn-hint">Tap or Press Any Key</span>
+      </button>
+    </div>
+    <div class="title-footer">
+      <p>Based on the Warriors manga by Erin Hunter</p>
+    </div>
+  </div>
+
+  <!-- Save Slots Screen -->
+  <div id="saves-screen" class="screen hidden">
+    <div class="saves-content">
+      <h1>Choose a Save Slot</h1>
+      <div class="save-slots">
+        <div class="save-slot" data-slot="1">
+          <div class="save-slot-number">1</div>
+          <div class="save-slot-info">
+            <div class="save-slot-name" id="slot-1-name">Empty Slot</div>
+            <div class="save-slot-details" id="slot-1-details">Start a new game</div>
+          </div>
+          <button class="save-slot-delete hidden" data-slot="1">🗑️</button>
+        </div>
+        <div class="save-slot" data-slot="2">
+          <div class="save-slot-number">2</div>
+          <div class="save-slot-info">
+            <div class="save-slot-name" id="slot-2-name">Empty Slot</div>
+            <div class="save-slot-details" id="slot-2-details">Start a new game</div>
+          </div>
+          <button class="save-slot-delete hidden" data-slot="2">🗑️</button>
+        </div>
+        <div class="save-slot" data-slot="3">
+          <div class="save-slot-number">3</div>
+          <div class="save-slot-info">
+            <div class="save-slot-name" id="slot-3-name">Empty Slot</div>
+            <div class="save-slot-details" id="slot-3-details">Start a new game</div>
+          </div>
+          <button class="save-slot-delete hidden" data-slot="3">🗑️</button>
+        </div>
+      </div>
+      <button class="back-btn" id="saves-back-btn">← Back</button>
+    </div>
+  </div>
+
+  <!-- Game Screen (3D renders here) -->
+  <div id="game-screen" class="screen hidden">
+    <!-- Three.js canvas renders here -->
+    <canvas id="game-canvas"></canvas>
+    
+    <!-- HUD -->
+    <div id="game-hud">
+      <div class="hud-top-left">
+        <div class="hud-chapter" id="hud-chapter">Chapter 1: The Beginning</div>
+        <div class="hud-location" id="hud-location">Twoleg House</div>
+      </div>
+      <div class="hud-top-right">
+        <button class="hud-btn" id="hud-menu-btn">☰ Menu</button>
+      </div>
+    </div>
+
+    <!-- Interaction Hint -->
+    <div id="interact-hint" class="hidden">
+      <span id="interact-hint-text">Press E to interact</span>
+    </div>
+
+    <!-- Dialogue Box -->
+    <div id="dialogue-box" class="hidden">
+      <div class="dialogue-speaker">
+        <span class="dialogue-speaker-icon" id="dialogue-speaker-icon">🐱</span>
+        <span class="dialogue-speaker-name" id="dialogue-speaker-name">Socks</span>
+      </div>
+      <div class="dialogue-text" id="dialogue-text">Hello there, little Tiny!</div>
+      <div class="dialogue-choices" id="dialogue-choices">
+        <!-- Choices appear here -->
+      </div>
+      <div class="dialogue-continue" id="dialogue-continue">Tap or press Space to continue</div>
+    </div>
+
+    <!-- Narration Box (for story moments) -->
+    <div id="narration-box" class="hidden">
+      <div class="narration-text" id="narration-text"></div>
+      <div class="narration-continue">Tap or press Space to continue</div>
+    </div>
+
+    <!-- Emotion Display -->
+    <div id="emotion-display" class="hidden">
+      <span id="emotion-icon">😊</span>
+    </div>
+
+    <!-- Chapter Title Overlay -->
+    <div id="chapter-overlay" class="hidden">
+      <div class="chapter-number" id="chapter-number">Chapter 1</div>
+      <div class="chapter-title" id="chapter-title">The Beginning</div>
+    </div>
+
+    <!-- Battle Screen -->
+    <div id="battle-screen" class="hidden">
+      <div class="battle-header">BATTLE!</div>
+      <div class="battle-enemy">
+        <div class="battle-enemy-name" id="battle-enemy-name">Tigerpaw</div>
+        <div class="battle-enemy-hp">
+          <div class="battle-hp-fill" id="battle-enemy-hp-fill"></div>
+        </div>
+      </div>
+      <div class="battle-player">
+        <div class="battle-player-name">Tiny</div>
+        <div class="battle-player-hp">
+          <div class="battle-hp-fill" id="battle-player-hp-fill"></div>
+        </div>
+      </div>
+      <div class="battle-log" id="battle-log"></div>
+      <div class="battle-actions" id="battle-actions">
+        <button class="battle-btn" data-action="attack">🐾 Attack</button>
+        <button class="battle-btn" data-action="dodge">💨 Dodge</button>
+        <button class="battle-btn" data-action="hiss">😾 Hiss</button>
+        <button class="battle-btn" data-action="flee">🏃 Try to Flee</button>
+      </div>
+    </div>
+
+    <!-- Scar Overlay (when you get hurt) -->
+    <div id="scar-overlay" class="hidden">
+      <div class="scar-content">
+        <div class="scar-text" id="scar-text">You've been scarred...</div>
+      </div>
+    </div>
+
+    <!-- Mobile Controls -->
+    <div id="mobile-controls" class="hidden">
+      <div class="joystick-container" id="joystick-container">
+        <div class="joystick-base">
+          <div class="joystick-stick" id="joystick-stick"></div>
+        </div>
+      </div>
+      <div class="mobile-buttons">
+        <button class="mobile-btn" id="mobile-jump">Jump</button>
+        <button class="mobile-btn" id="mobile-interact">Talk</button>
+        <button class="mobile-btn" id="mobile-emote">😺</button>
+        <button class="mobile-btn" id="mobile-meow">Meow!</button>
+      </div>
+    </div>
+
+    <!-- Emote Wheel -->
+    <div id="emote-wheel" class="hidden">
+      <button class="emote-btn" data-emote="happy">😊 Happy</button>
+      <button class="emote-btn" data-emote="sad">😢 Sad</button>
+      <button class="emote-btn" data-emote="angry">😠 Angry</button>
+      <button class="emote-btn" data-emote="scared">😨 Scared</button>
+      <button class="emote-btn" data-emote="curious">🤔 Curious</button>
+      <button class="emote-btn" data-emote="tired">😴 Tired</button>
+    </div>
+
+    <!-- Pause Menu -->
+    <div id="pause-menu" class="hidden">
+      <div class="pause-content">
+        <h2>Paused</h2>
+        <button class="pause-btn" id="pause-resume">Resume</button>
+        <button class="pause-btn" id="pause-controls">Controls</button>
+        <button class="pause-btn" id="pause-save">Save Game</button>
+        <button class="pause-btn" id="pause-quit">Quit to Menu</button>
+      </div>
+    </div>
+
+    <!-- Controls Help -->
+    <div id="controls-help" class="hidden">
+      <div class="controls-content">
+        <h2>Controls</h2>
+        <div class="controls-grid">
+          <div class="control-item">
+            <kbd>W A S D</kbd>
+            <span>Move</span>
+          </div>
+          <div class="control-item">
+            <kbd>Mouse</kbd>
+            <span>Look Around</span>
+          </div>
+          <div class="control-item">
+            <kbd>Space</kbd>
+            <span>Jump</span>
+          </div>
+          <div class="control-item">
+            <kbd>Shift</kbd>
+            <span>Run</span>
+          </div>
+          <div class="control-item">
+            <kbd>E</kbd>
+            <span>Interact / Talk</span>
+          </div>
+          <div class="control-item">
+            <kbd>Q</kbd>
+            <span>Meow!</span>
+          </div>
+          <div class="control-item">
+            <kbd>C</kbd>
+            <span>Lie Down</span>
+          </div>
+          <div class="control-item">
+            <kbd>1-6</kbd>
+            <span>Emotions</span>
+          </div>
+          <div class="control-item">
+            <kbd>Esc</kbd>
+            <span>Pause</span>
+          </div>
+        </div>
+        <button class="close-btn" id="close-controls">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Three.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+    if (typeof THREE === 'undefined') {
+      document.body.innerHTML = '<div style="color:#fff;padding:40px;font-size:18px;background:#1a1a2e;min-height:100vh;font-family:Nunito,sans-serif;text-align:center">' +
+        '<h1>Could not load the game</h1>' +
+        '<p>Three.js failed to load. Please check your internet connection and refresh.</p>' +
+        '<button onclick="location.reload()" style="padding:12px 24px;font-size:16px;cursor:pointer;background:#ff6b6b;border:none;color:#fff;border-radius:8px;margin-top:20px">Retry</button></div>';
+    }
+  </script>
+  <script src="js/game-logic.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
