@@ -30,8 +30,17 @@ let playerVelocity = new THREE.Vector3();
 let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
 let canJump = true;
 let isRunning = false;
+let isCrouching = false;
 let clock = new THREE.Clock();
 let isMobile = false;
+
+// Collision system
+let collisionObjects = []; // Objects you can't walk through
+let walkableObjects = [];  // Objects you can walk on top of
+const PLAYER_HEIGHT_STAND = 0.5;  // Normal cat height
+const PLAYER_HEIGHT_CROUCH = 0.2; // Crouching height
+const PLAYER_RADIUS = 0.25;       // Collision radius
+let currentPlayerHeight = PLAYER_HEIGHT_STAND;
 
 // DOM elements
 const loadingScreen = document.getElementById('loading-screen');
@@ -172,6 +181,10 @@ function setupEventListeners() {
     jump();
   });
   
+  document.getElementById('btn-crouch').addEventListener('click', () => {
+    toggleCrouch();
+  });
+  
   document.getElementById('btn-meow').addEventListener('click', () => {
     GameData.SoundManager.playMeow();
     showEmote('meow');
@@ -309,6 +322,11 @@ function createEnvironment(chapter) {
   scene.children = scene.children.filter(child => 
     child instanceof THREE.Light || child === camera
   );
+  
+  // Clear collision arrays
+  collisionObjects = [];
+  walkableObjects = [];
+  catFigures = [];
   
   const chapterData = GameData.CHAPTERS[chapter - 1];
   
@@ -559,6 +577,16 @@ function createTwolegHouse() {
   couchGroup.add(throwPillow);
   
   couchGroup.position.set(-5, 0, -10);
+  
+  // Add collision data for couch - can crouch under, walk on top
+  couchGroup.userData = {
+    collisionBox: { minX: -4.2, maxX: 4.2, minZ: -1.8, maxZ: 1.8, minY: 0, maxY: 1.4 },
+    walkableBox: { minX: -4, maxX: 4, minZ: -1.5, maxZ: 1.5, topY: 1.1 },
+    worldPosition: couchGroup.position
+  };
+  collisionObjects.push(couchGroup);
+  walkableObjects.push(couchGroup);
+  
   scene.add(couchGroup);
   
   // === REALISTIC WOVEN CAT BASKET ===
@@ -672,6 +700,16 @@ function createTwolegHouse() {
   }
   
   basketGroup.position.set(5, 0, -8);
+  
+  // Basket collision - low, can step over/into
+  basketGroup.userData = {
+    collisionBox: { minX: -1.6, maxX: 1.6, minZ: -1.6, maxZ: 1.6, minY: 0, maxY: 0.7 },
+    walkableBox: { minX: -1.3, maxX: 1.3, minZ: -1.3, maxZ: 1.3, topY: 0.35 },
+    worldPosition: basketGroup.position
+  };
+  collisionObjects.push(basketGroup);
+  walkableObjects.push(basketGroup);
+  
   scene.add(basketGroup);
   
   // === REALISTIC WINDOWS WITH LIGHT RAYS ===
@@ -863,6 +901,16 @@ function createTwolegHouse() {
   }
   
   tableGroup.position.set(-5, 0, -5);
+  
+  // Coffee table collision - can crouch under (legs), walk on top
+  tableGroup.userData = {
+    collisionBox: { minX: -1.9, maxX: 1.9, minZ: -1.1, maxZ: 1.1, minY: 0.8, maxY: 1.2 },
+    walkableBox: { minX: -1.8, maxX: 1.8, minZ: -1.0, maxZ: 1.0, topY: 1.1 },
+    worldPosition: tableGroup.position
+  };
+  collisionObjects.push(tableGroup);
+  walkableObjects.push(tableGroup);
+  
   scene.add(tableGroup);
   
   // === PLUSH ARMCHAIR ===
@@ -933,6 +981,16 @@ function createTwolegHouse() {
   });
   
   armchairGroup.position.set(8, 0, -5);
+  
+  // Armchair collision - solid, can't go through
+  armchairGroup.userData = {
+    collisionBox: { minX: -1.3, maxX: 1.3, minZ: -1.1, maxZ: 1.1, minY: 0, maxY: 2.8 },
+    walkableBox: { minX: -1.0, maxX: 1.0, minZ: -0.8, maxZ: 0.8, topY: 0.9 },
+    worldPosition: armchairGroup.position
+  };
+  collisionObjects.push(armchairGroup);
+  walkableObjects.push(armchairGroup);
+  
   scene.add(armchairGroup);
   
   // === LUXURIOUS PERSIAN-STYLE RUG ===
@@ -1110,6 +1168,14 @@ function createTwolegHouse() {
   
   bookshelfGroup.position.set(13, 2.5, -5);
   bookshelfGroup.rotation.y = -Math.PI / 2;
+  
+  // Bookshelf collision - solid wall-like, rotated
+  bookshelfGroup.userData = {
+    collisionBox: { minX: -1.6, maxX: 1.6, minZ: -0.4, maxZ: 0.4, minY: -2.5, maxY: 2.5 },
+    worldPosition: bookshelfGroup.position
+  };
+  collisionObjects.push(bookshelfGroup);
+  
   scene.add(bookshelfGroup);
   
   // === CAT CHARACTERS - High Quality ===
@@ -1119,16 +1185,26 @@ function createTwolegHouse() {
   // Socks - standing near the rug, looking smug
   const socks = createCatFigure(2, 0, -2, 0x555555, 'Socks', true);
   socks.rotation.y = Math.PI / 2;
+  // Cat collision - small, can't walk through other cats
+  socks.userData.collisionBox = { minX: -0.4, maxX: 0.4, minZ: -0.5, maxZ: 0.5, minY: 0, maxY: 0.7 };
+  socks.userData.worldPosition = socks.position;
+  collisionObjects.push(socks);
   catFigures.push(socks);
   
   // Ruby - near Socks, following his lead
   const ruby = createCatFigure(0, 0, -1, 0x8B4513, 'Ruby');
   ruby.rotation.y = Math.PI / 3;
+  ruby.userData.collisionBox = { minX: -0.4, maxX: 0.4, minZ: -0.5, maxZ: 0.5, minY: 0, maxY: 0.7 };
+  ruby.userData.worldPosition = ruby.position;
+  collisionObjects.push(ruby);
   catFigures.push(ruby);
   
   // Quince (mother) - resting on the couch
   const quince = createCatFigure(-5, 1.15, -9.5, 0xFFE4B5, 'Quince');
   quince.rotation.y = Math.PI / 6;
+  quince.userData.collisionBox = { minX: -0.4, maxX: 0.4, minZ: -0.5, maxZ: 0.5, minY: 1.15, maxY: 1.85 };
+  quince.userData.worldPosition = quince.position;
+  collisionObjects.push(quince);
   catFigures.push(quince);
   
   // === ULTRA-REALISTIC LIGHTING ===
@@ -1311,13 +1387,22 @@ function createForest() {
     return treeGroup;
   };
   
-  // Place trees
+  // Place trees with collision
   for (let i = 0; i < 60; i++) {
     const x = (Math.random() - 0.5) * 80;
     const z = (Math.random() - 0.5) * 80;
     if (Math.abs(x) < 5 && Math.abs(z) < 5) continue;
     
-    const tree = createTree(x, z, 0.7 + Math.random() * 0.6);
+    const size = 0.7 + Math.random() * 0.6;
+    const tree = createTree(x, z, size);
+    
+    // Tree trunk collision
+    tree.userData = {
+      collisionBox: { minX: -0.4 * size, maxX: 0.4 * size, minZ: -0.4 * size, maxZ: 0.4 * size, minY: 0, maxY: 8 },
+      worldPosition: tree.position
+    };
+    collisionObjects.push(tree);
+    
     scene.add(tree);
   }
   
@@ -1351,6 +1436,14 @@ function createForest() {
     }
     
     bushGroup.position.set(x, 0, z);
+    
+    // Bush collision - small, can push through slowly
+    bushGroup.userData = {
+      collisionBox: { minX: -0.5, maxX: 0.5, minZ: -0.5, maxZ: 0.5, minY: 0, maxY: 0.6 },
+      worldPosition: bushGroup.position
+    };
+    collisionObjects.push(bushGroup);
+    
     scene.add(bushGroup);
   }
   
@@ -1363,9 +1456,10 @@ function createForest() {
   for (let i = 0; i < 20; i++) {
     const x = (Math.random() - 0.5) * 70;
     const z = (Math.random() - 0.5) * 70;
+    const rockSize = 0.3 + Math.random() * 0.4;
     
     const rock = new THREE.Mesh(
-      new THREE.DodecahedronGeometry(0.3 + Math.random() * 0.4, 1),
+      new THREE.DodecahedronGeometry(rockSize, 1),
       rockMaterial
     );
     rock.position.set(x, 0.2, z);
@@ -1373,6 +1467,16 @@ function createForest() {
     rock.scale.y = 0.6;
     rock.castShadow = true;
     rock.receiveShadow = true;
+    
+    // Rock collision - solid, can climb on
+    rock.userData = {
+      collisionBox: { minX: -rockSize, maxX: rockSize, minZ: -rockSize, maxZ: rockSize, minY: 0, maxY: rockSize },
+      walkableBox: { minX: -rockSize * 0.8, maxX: rockSize * 0.8, minZ: -rockSize * 0.8, maxZ: rockSize * 0.8, topY: rockSize * 0.4 },
+      worldPosition: rock.position
+    };
+    collisionObjects.push(rock);
+    walkableObjects.push(rock);
+    
     scene.add(rock);
   }
   
@@ -1627,6 +1731,16 @@ function createTwolegplace() {
   }
   
   dumpsterGroup.position.set(-5, 0, -8);
+  
+  // Dumpster collision - large, can climb on
+  dumpsterGroup.userData = {
+    collisionBox: { minX: -1.6, maxX: 1.6, minZ: -1.0, maxZ: 1.0, minY: 0, maxY: 2.2 },
+    walkableBox: { minX: -1.4, maxX: 1.4, minZ: -0.8, maxZ: 0.8, topY: 2.0 },
+    worldPosition: dumpsterGroup.position
+  };
+  collisionObjects.push(dumpsterGroup);
+  walkableObjects.push(dumpsterGroup);
+  
   scene.add(dumpsterGroup);
   
   // === SCATTERED DEBRIS ===
@@ -1732,11 +1846,24 @@ function createTwolegplace() {
   lampGroup.add(lampLight);
   
   lampGroup.position.set(6, 0, -2);
+  
+  // Lamp post collision
+  lampGroup.userData = {
+    collisionBox: { minX: -0.2, maxX: 0.2, minZ: -0.2, maxZ: 0.2, minY: 0, maxY: 5.5 },
+    worldPosition: lampGroup.position
+  };
+  collisionObjects.push(lampGroup);
+  
   scene.add(lampGroup);
   
   // Second lamp
   const lamp2 = lampGroup.clone();
   lamp2.position.set(-6, 0, -12);
+  lamp2.userData = {
+    collisionBox: { minX: -0.2, maxX: 0.2, minZ: -0.2, maxZ: 0.2, minY: 0, maxY: 5.5 },
+    worldPosition: lamp2.position
+  };
+  collisionObjects.push(lamp2);
   scene.add(lamp2);
   
   // === REALISTIC DARK URBAN ATMOSPHERE ===
@@ -2270,6 +2397,9 @@ function onKeyDown(e) {
     case 'KeyD': moveRight = true; break;
     case 'Space': jump(); break;
     case 'ShiftLeft': isRunning = true; break;
+    case 'ControlLeft':
+    case 'ControlRight':
+    case 'KeyZ': toggleCrouch(); break;
     case 'KeyE': interact(); break;
     case 'KeyQ': 
       GameData.SoundManager.playMeow();
@@ -2311,11 +2441,90 @@ function onKeyUp(e) {
   }
 }
 
+// Collision detection helper - check if position collides with an object
+function checkCollision(newX, newZ, newY) {
+  const playerPos = new THREE.Vector3(newX, newY, newZ);
+  
+  for (const obj of collisionObjects) {
+    if (!obj.userData || !obj.userData.collisionBox) continue;
+    
+    const box = obj.userData.collisionBox;
+    const objPos = obj.userData.worldPosition || obj.position;
+    
+    // Check if player would be inside this object's bounding box
+    const minX = objPos.x + box.minX;
+    const maxX = objPos.x + box.maxX;
+    const minZ = objPos.z + box.minZ;
+    const maxZ = objPos.z + box.maxZ;
+    const minY = objPos.y + box.minY;
+    const maxY = objPos.y + box.maxY;
+    
+    // Check horizontal collision (with player radius)
+    const horizontalCollision = 
+      newX + PLAYER_RADIUS > minX && 
+      newX - PLAYER_RADIUS < maxX && 
+      newZ + PLAYER_RADIUS > minZ && 
+      newZ - PLAYER_RADIUS < maxZ;
+    
+    if (horizontalCollision) {
+      // Check if player can go UNDER this object (crouching)
+      if (isCrouching && minY > PLAYER_HEIGHT_CROUCH + 0.05) {
+        continue; // Can crouch under this
+      }
+      
+      // Check vertical collision
+      if (newY < maxY && newY + currentPlayerHeight > minY) {
+        return { collides: true, object: obj, box: { minX, maxX, minZ, maxZ, minY, maxY } };
+      }
+    }
+  }
+  
+  return { collides: false };
+}
+
+// Check if player can stand on top of an object
+function getGroundHeight(x, z) {
+  let groundY = 0; // Default floor level
+  
+  for (const obj of walkableObjects) {
+    if (!obj.userData || !obj.userData.walkableBox) continue;
+    
+    const box = obj.userData.walkableBox;
+    const objPos = obj.userData.worldPosition || obj.position;
+    
+    const minX = objPos.x + box.minX;
+    const maxX = objPos.x + box.maxX;
+    const minZ = objPos.z + box.minZ;
+    const maxZ = objPos.z + box.maxZ;
+    const topY = objPos.y + box.topY;
+    
+    // Check if player is above this surface
+    if (x > minX && x < maxX && z > minZ && z < maxZ) {
+      if (topY > groundY) {
+        groundY = topY;
+      }
+    }
+  }
+  
+  return groundY;
+}
+
+// Toggle crouch
+function toggleCrouch() {
+  isCrouching = !isCrouching;
+  currentPlayerHeight = isCrouching ? PLAYER_HEIGHT_CROUCH : PLAYER_HEIGHT_STAND;
+  
+  // Adjust camera height when crouching
+  if (isCrouching) {
+    camera.position.y = Math.max(PLAYER_HEIGHT_CROUCH, camera.position.y - 0.3);
+  }
+}
+
 // Movement - W forward, A left, S back, D right (relative to camera direction)
 function updateMovement(delta) {
   if (GameState.isPaused || GameState.isInDialogue || GameState.isInBattle || GameState.isLyingDown) return;
   
-  const speed = isRunning ? 8 : 4;
+  const speed = isCrouching ? 2 : (isRunning ? 8 : 4);
   
   // Get the direction the camera is facing (ignore vertical tilt)
   const cameraDirection = new THREE.Vector3();
@@ -2349,25 +2558,59 @@ function updateMovement(delta) {
     moveDirection.normalize();
     moveDirection.multiplyScalar(speed * delta);
     
-    // Apply movement
-    camera.position.x += moveDirection.x;
-    camera.position.z += moveDirection.z;
+    // Calculate new position
+    const newX = camera.position.x + moveDirection.x;
+    const newZ = camera.position.z + moveDirection.z;
+    
+    // Check collision before moving
+    const collision = checkCollision(newX, newZ, camera.position.y);
+    
+    if (!collision.collides) {
+      // No collision - move freely
+      camera.position.x = newX;
+      camera.position.z = newZ;
+    } else {
+      // Try sliding along walls
+      // Try X movement only
+      const collisionX = checkCollision(newX, camera.position.z, camera.position.y);
+      if (!collisionX.collides) {
+        camera.position.x = newX;
+      }
+      
+      // Try Z movement only
+      const collisionZ = checkCollision(camera.position.x, newZ, camera.position.y);
+      if (!collisionZ.collides) {
+        camera.position.z = newZ;
+      }
+    }
   }
   
+  // Get ground height at current position (for walking on objects)
+  const groundHeight = getGroundHeight(camera.position.x, camera.position.z);
+  const targetY = groundHeight + currentPlayerHeight;
+  
   // Gravity
-  playerVelocity.y -= 9.8 * delta;
+  playerVelocity.y -= 15 * delta;
   camera.position.y += playerVelocity.y * delta;
   
-  // Ground collision
-  if (camera.position.y < 0.5) {
-    camera.position.y = 0.5;
+  // Ground/surface collision
+  if (camera.position.y < targetY) {
+    camera.position.y = targetY;
     playerVelocity.y = 0;
     canJump = true;
   }
   
-  // Bounds
-  camera.position.x = Math.max(-45, Math.min(45, camera.position.x));
-  camera.position.z = Math.max(-45, Math.min(45, camera.position.z));
+  // Check if hitting head on something above when jumping
+  if (playerVelocity.y > 0) {
+    const headCollision = checkCollision(camera.position.x, camera.position.z, camera.position.y + 0.1);
+    if (headCollision.collides) {
+      playerVelocity.y = 0;
+    }
+  }
+  
+  // Bounds (walls)
+  camera.position.x = Math.max(-14.5, Math.min(14.5, camera.position.x));
+  camera.position.z = Math.max(-14.5, Math.min(14.5, camera.position.z));
 }
 
 // Mouse look (desktop)
