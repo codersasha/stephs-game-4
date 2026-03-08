@@ -117,15 +117,83 @@ const CHARACTERS = {
   }
 };
 
+// Opening cutscene - introduces all characters
+const OPENING_CUTSCENE = [
+  {
+    type: "scene",
+    text: "A warm Twoleg house on a sunny day...",
+    background: "house_exterior"
+  },
+  {
+    type: "scene", 
+    text: "Inside, a family of cats lives happily.",
+    background: "house_interior"
+  },
+  {
+    type: "character_intro",
+    name: "Quince",
+    title: "The Mother",
+    description: "A gentle cream-colored she-cat with loving green eyes",
+    icon: "🐱"
+  },
+  {
+    type: "character_intro",
+    name: "Socks",
+    title: "The Brother",
+    description: "A gray tom with white paws - confident and bossy",
+    icon: "🐱"
+  },
+  {
+    type: "character_intro",
+    name: "Ruby", 
+    title: "The Sister",
+    description: "A brown tabby she-cat - follows her brother's lead",
+    icon: "🐱"
+  },
+  {
+    type: "character_intro",
+    name: "Tiny",
+    title: "You",
+    description: "The smallest kit - black with one white paw and ice-blue eyes",
+    icon: "🐱",
+    isPlayer: true
+  },
+  {
+    type: "scene",
+    text: "Today, the kits are playing hide and seek...",
+    background: "house_interior"
+  },
+  {
+    type: "scene",
+    text: "You're hiding by the edge of the big soft sitting-thing the Twolegs use.",
+    background: "house_interior"
+  }
+];
+
 // Dialogue for Chapter 1
 const CHAPTER_1_DIALOGUE = {
   intro_narration: [
-    "You open your eyes slowly...",
-    "Warm sunlight filters through a window. You're in a cozy Twoleg house.",
-    "You are Tiny - a small black kit with one white paw.",
-    "Your littermates, Socks and Ruby, are nearby.",
-    "This is your home... for now."
+    "You press yourself against the edge of the couch, trying to be invisible...",
+    "Your heart pounds with excitement. This is hide and seek!",
+    "You can hear Socks counting somewhere in the house...",
+    "\"...eight... nine... TEN! Ready or not, here I come!\""
   ],
+  
+  hide_seek_start: {
+    speaker: "narrator",
+    text: "You hold your breath. Pawsteps are getting closer...",
+    next: "socks_finds_you"
+  },
+  
+  socks_finds_you: {
+    speaker: "socks",
+    text: "Ha! Found you, TINY! That was way too easy!",
+    choices: [
+      { text: "\"You got lucky!\"", next: "socks_mock" },
+      { text: "\"Good job finding me\"", next: "socks_bully_2" },
+      { text: "Look away sadly", next: "walk_away", emotion: "sad" }
+    ]
+  },
   
   socks_bully_1: {
     speaker: "socks",
@@ -802,5 +870,6 @@ window.GameData = {
   ALL_DIALOGUE,
   BATTLE_CONFIG,
   SoundManager,
-  SaveManager
+  SaveManager,
+  OPENING_CUTSCENE
 };

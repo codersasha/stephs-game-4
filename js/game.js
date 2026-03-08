@@ -265,64 +265,205 @@ function createEnvironment(chapter) {
   }
 }
 
-// Create Twoleg House environment
+// Create Twoleg House environment - Big cozy house!
 function createTwolegHouse() {
-  // Floor
-  const floorGeometry = new THREE.PlaneGeometry(20, 20);
-  const floorMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+  // Nice wooden floor with pattern
+  const floorGeometry = new THREE.PlaneGeometry(30, 30);
+  const floorMaterial = new THREE.MeshStandardMaterial({ 
+    color: 0xB8860B,
+    roughness: 0.8,
+    metalness: 0.1
+  });
   const floor = new THREE.Mesh(floorGeometry, floorMaterial);
   floor.rotation.x = -Math.PI / 2;
   floor.position.y = 0;
+  floor.receiveShadow = true;
   scene.add(floor);
   
-  // Walls
-  const wallMaterial = new THREE.MeshLambertMaterial({ color: 0xDEB887 });
+  // Warm cream walls
+  const wallMaterial = new THREE.MeshStandardMaterial({ 
+    color: 0xFFF8DC,
+    roughness: 0.9
+  });
   
   // Back wall
-  const backWall = new THREE.Mesh(new THREE.PlaneGeometry(20, 8), wallMaterial);
-  backWall.position.set(0, 4, -10);
+  const backWall = new THREE.Mesh(new THREE.PlaneGeometry(30, 10), wallMaterial);
+  backWall.position.set(0, 5, -15);
   scene.add(backWall);
   
   // Side walls
-  const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(20, 8), wallMaterial);
+  const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(30, 10), wallMaterial);
   leftWall.rotation.y = Math.PI / 2;
-  leftWall.position.set(-10, 4, 0);
+  leftWall.position.set(-15, 5, 0);
   scene.add(leftWall);
   
-  const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(20, 8), wallMaterial);
+  const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(30, 10), wallMaterial);
   rightWall.rotation.y = -Math.PI / 2;
-  rightWall.position.set(10, 4, 0);
+  rightWall.position.set(15, 5, 0);
   scene.add(rightWall);
   
-  // Cat bed
-  const bedGeometry = new THREE.CylinderGeometry(1.5, 1.5, 0.3, 16);
-  const bedMaterial = new THREE.MeshLambertMaterial({ color: 0x654321 });
-  const bed = new THREE.Mesh(bedGeometry, bedMaterial);
-  bed.position.set(-3, 0.15, -3);
-  scene.add(bed);
+  // Front wall with door opening
+  const frontWall = new THREE.Mesh(new THREE.PlaneGeometry(30, 10), wallMaterial);
+  frontWall.rotation.y = Math.PI;
+  frontWall.position.set(0, 5, 15);
+  scene.add(frontWall);
   
-  // Cushion
-  const cushionGeometry = new THREE.SphereGeometry(1.2, 16, 16);
-  const cushionMaterial = new THREE.MeshLambertMaterial({ color: 0xCD853F });
-  const cushion = new THREE.Mesh(cushionGeometry, cushionMaterial);
-  cushion.scale.y = 0.3;
-  cushion.position.set(-3, 0.3, -3);
-  scene.add(cushion);
+  // === BIG COZY COUCH (the "soft sitting-thing") ===
+  const couchColor = 0x8B4513; // Brown leather
+  const couchMaterial = new THREE.MeshStandardMaterial({ 
+    color: couchColor,
+    roughness: 0.6
+  });
   
-  // Window (with light coming through)
-  const windowGeometry = new THREE.PlaneGeometry(4, 3);
+  // Couch base
+  const couchBase = new THREE.Mesh(
+    new THREE.BoxGeometry(8, 1, 3),
+    couchMaterial
+  );
+  couchBase.position.set(-5, 0.5, -10);
+  scene.add(couchBase);
+  
+  // Couch back
+  const couchBack = new THREE.Mesh(
+    new THREE.BoxGeometry(8, 2, 0.5),
+    couchMaterial
+  );
+  couchBack.position.set(-5, 1.5, -11.25);
+  scene.add(couchBack);
+  
+  // Couch arm left
+  const couchArmL = new THREE.Mesh(
+    new THREE.BoxGeometry(0.5, 1.5, 3),
+    couchMaterial
+  );
+  couchArmL.position.set(-9, 1, -10);
+  scene.add(couchArmL);
+  
+  // Couch arm right
+  const couchArmR = new THREE.Mesh(
+    new THREE.BoxGeometry(0.5, 1.5, 3),
+    couchMaterial
+  );
+  couchArmR.position.set(-1, 1, -10);
+  scene.add(couchArmR);
+  
+  // Couch cushions
+  const cushionMat = new THREE.MeshStandardMaterial({ color: 0xCD853F, roughness: 0.7 });
+  for (let i = 0; i < 3; i++) {
+    const cushion = new THREE.Mesh(
+      new THREE.BoxGeometry(2.4, 0.4, 2),
+      cushionMat
+    );
+    cushion.position.set(-7.5 + i * 2.5, 1.2, -10);
+    scene.add(cushion);
+  }
+  
+  // === CAT BASKET (where you start!) ===
+  const basketColor = 0x8B7355;
+  const basketMaterial = new THREE.MeshStandardMaterial({ color: basketColor, roughness: 0.9 });
+  
+  // Basket base (cylinder)
+  const basketBase = new THREE.Mesh(
+    new THREE.CylinderGeometry(1.5, 1.8, 0.5, 24),
+    basketMaterial
+  );
+  basketBase.position.set(5, 0.25, -8);
+  scene.add(basketBase);
+  
+  // Basket rim
+  const basketRim = new THREE.Mesh(
+    new THREE.TorusGeometry(1.6, 0.15, 8, 24),
+    basketMaterial
+  );
+  basketRim.rotation.x = Math.PI / 2;
+  basketRim.position.set(5, 0.5, -8);
+  scene.add(basketRim);
+  
+  // Soft cushion inside basket
+  const basketCushion = new THREE.Mesh(
+    new THREE.CylinderGeometry(1.3, 1.3, 0.3, 24),
+    new THREE.MeshStandardMaterial({ color: 0xFFE4C4, roughness: 0.8 })
+  );
+  basketCushion.position.set(5, 0.4, -8);
+  scene.add(basketCushion);
+  
+  // === BIG WINDOWS with sunlight ===
   const windowMaterial = new THREE.MeshBasicMaterial({ color: 0x87CEEB });
-  const window1 = new THREE.Mesh(windowGeometry, windowMaterial);
-  window1.position.set(0, 4, -9.9);
+  
+  // Window 1
+  const window1 = new THREE.Mesh(new THREE.PlaneGeometry(5, 4), windowMaterial);
+  window1.position.set(-5, 5, -14.9);
   scene.add(window1);
   
-  // Add some simple cat representations (Socks and Ruby)
-  createCatFigure(2, 0.5, -5, 0x2a2a2a, 'Socks'); // Socks
-  createCatFigure(4, 0.5, -4, 0x8B4513, 'Ruby'); // Ruby
+  // Window frame
+  const frameMat = new THREE.MeshStandardMaterial({ color: 0xFFFFFF });
+  const frameTop = new THREE.Mesh(new THREE.BoxGeometry(5.5, 0.2, 0.1), frameMat);
+  frameTop.position.set(-5, 7.1, -14.85);
+  scene.add(frameTop);
+  const frameBot = new THREE.Mesh(new THREE.BoxGeometry(5.5, 0.2, 0.1), frameMat);
+  frameBot.position.set(-5, 2.9, -14.85);
+  scene.add(frameBot);
   
-  // Update scene background for indoor
-  scene.background = new THREE.Color(0x2a2a2a);
-  scene.fog = new THREE.Fog(0x2a2a2a, 5, 30);
+  // Window 2
+  const window2 = new THREE.Mesh(new THREE.PlaneGeometry(5, 4), windowMaterial);
+  window2.position.set(5, 5, -14.9);
+  scene.add(window2);
+  
+  // === FURNITURE ===
+  
+  // Coffee table
+  const tableMat = new THREE.MeshStandardMaterial({ color: 0x654321 });
+  const tableTop = new THREE.Mesh(new THREE.BoxGeometry(3, 0.2, 2), tableMat);
+  tableTop.position.set(-5, 1, -5);
+  scene.add(tableTop);
+  // Table legs
+  for (let x of [-1.3, 1.3]) {
+    for (let z of [-0.8, 0.8]) {
+      const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 1, 8), tableMat);
+      leg.position.set(-5 + x, 0.5, -5 + z);
+      scene.add(leg);
+    }
+  }
+  
+  // Armchair
+  const chairMat = new THREE.MeshStandardMaterial({ color: 0x4A4A4A });
+  const chairSeat = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.8, 2.5), chairMat);
+  chairSeat.position.set(8, 0.4, -5);
+  scene.add(chairSeat);
+  const chairBack = new THREE.Mesh(new THREE.BoxGeometry(2.5, 2, 0.4), chairMat);
+  chairBack.position.set(8, 1.4, -6.05);
+  scene.add(chairBack);
+  
+  // Rug on floor
+  const rugMat = new THREE.MeshStandardMaterial({ color: 0x8B0000, roughness: 1 });
+  const rug = new THREE.Mesh(new THREE.PlaneGeometry(8, 6), rugMat);
+  rug.rotation.x = -Math.PI / 2;
+  rug.position.set(0, 0.01, -3);
+  scene.add(rug);
+  
+  // === CAT CHARACTERS ===
+  // Socks hiding behind the armchair
+  createCatFigure(10, 0.5, -6, 0x555555, 'Socks', true);
+  
+  // Ruby near the basket (watching)
+  createCatFigure(3, 0.5, -6, 0x8B4513, 'Ruby');
+  
+  // Mother Quince resting on the couch
+  createCatFigure(-5, 1.5, -9.5, 0xFFE4B5, 'Quince');
+  
+  // === LIGHTING for cozy atmosphere ===
+  scene.background = new THREE.Color(0xFFF8E7);
+  scene.fog = new THREE.Fog(0xFFF8E7, 10, 40);
+  
+  // Warm sunlight from windows
+  const sunLight = new THREE.DirectionalLight(0xFFE4B5, 1);
+  sunLight.position.set(0, 10, -10);
+  sunLight.castShadow = true;
+  scene.add(sunLight);
+  
+  // Ambient warm light
+  const warmAmbient = new THREE.AmbientLight(0xFFE4C4, 0.5);
+  scene.add(warmAmbient);
 }
 
 // Create Forest environment
@@ -404,44 +545,136 @@ function createTwolegplace() {
   scene.fog = new THREE.Fog(0x1a1a1a, 2, 20);
 }
 
-// Create a simple cat figure
-function createCatFigure(x, y, z, color, name) {
+// Create a better quality cat figure
+function createCatFigure(x, y, z, color, name, hasWhitePaws = false) {
   const group = new THREE.Group();
   
-  // Body
-  const bodyGeometry = new THREE.SphereGeometry(0.4, 16, 16);
-  const bodyMaterial = new THREE.MeshLambertMaterial({ color });
+  const bodyMaterial = new THREE.MeshStandardMaterial({ 
+    color,
+    roughness: 0.8,
+    metalness: 0
+  });
+  
+  // Body - more detailed
+  const bodyGeometry = new THREE.SphereGeometry(0.5, 32, 32);
   const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-  body.scale.set(1, 0.7, 1.3);
-  body.position.y = 0.3;
+  body.scale.set(1, 0.7, 1.4);
+  body.position.y = 0.35;
+  body.castShadow = true;
   group.add(body);
   
-  // Head
-  const headGeometry = new THREE.SphereGeometry(0.25, 16, 16);
+  // Head - rounder and cuter
+  const headGeometry = new THREE.SphereGeometry(0.32, 32, 32);
   const head = new THREE.Mesh(headGeometry, bodyMaterial);
-  head.position.set(0, 0.5, 0.35);
+  head.position.set(0, 0.6, 0.45);
+  head.castShadow = true;
   group.add(head);
   
-  // Ears
-  const earGeometry = new THREE.ConeGeometry(0.08, 0.15, 4);
+  // Ears - triangular and cute
+  const earGeometry = new THREE.ConeGeometry(0.12, 0.2, 4);
+  const earInnerMat = new THREE.MeshStandardMaterial({ color: 0xFFB6C1 }); // Pink inside
+  
   const earL = new THREE.Mesh(earGeometry, bodyMaterial);
-  earL.position.set(-0.12, 0.7, 0.35);
+  earL.position.set(-0.18, 0.88, 0.4);
+  earL.rotation.z = 0.2;
   group.add(earL);
   
   const earR = new THREE.Mesh(earGeometry, bodyMaterial);
-  earR.position.set(0.12, 0.7, 0.35);
+  earR.position.set(0.18, 0.88, 0.4);
+  earR.rotation.z = -0.2;
   group.add(earR);
   
-  // Eyes (glowing)
-  const eyeGeometry = new THREE.SphereGeometry(0.05, 8, 8);
-  const eyeMaterial = new THREE.MeshBasicMaterial({ color: 0xFFD700 });
-  const eyeL = new THREE.Mesh(eyeGeometry, eyeMaterial);
-  eyeL.position.set(-0.08, 0.52, 0.55);
-  group.add(eyeL);
+  // Inner ears (pink)
+  const earInnerL = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.12, 4), earInnerMat);
+  earInnerL.position.set(-0.18, 0.86, 0.45);
+  earInnerL.rotation.z = 0.2;
+  group.add(earInnerL);
   
-  const eyeR = new THREE.Mesh(eyeGeometry, eyeMaterial);
-  eyeR.position.set(0.08, 0.52, 0.55);
-  group.add(eyeR);
+  const earInnerR = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.12, 4), earInnerMat);
+  earInnerR.position.set(0.18, 0.86, 0.45);
+  earInnerR.rotation.z = -0.2;
+  group.add(earInnerR);
+  
+  // Eyes - bigger and more expressive
+  const eyeWhiteGeometry = new THREE.SphereGeometry(0.08, 16, 16);
+  const eyeWhiteMaterial = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
+  
+  const eyeWhiteL = new THREE.Mesh(eyeWhiteGeometry, eyeWhiteMaterial);
+  eyeWhiteL.scale.z = 0.5;
+  eyeWhiteL.position.set(-0.12, 0.65, 0.7);
+  group.add(eyeWhiteL);
+  
+  const eyeWhiteR = new THREE.Mesh(eyeWhiteGeometry, eyeWhiteMaterial);
+  eyeWhiteR.scale.z = 0.5;
+  eyeWhiteR.position.set(0.12, 0.65, 0.7);
+  group.add(eyeWhiteR);
+  
+  // Eye color (pupils)
+  const eyeColor = name === 'Tiny' ? 0x87CEEB : (name === 'Quince' ? 0x90EE90 : 0xFFD700);
+  const pupilGeometry = new THREE.SphereGeometry(0.05, 16, 16);
+  const pupilMaterial = new THREE.MeshBasicMaterial({ color: eyeColor });
+  
+  const pupilL = new THREE.Mesh(pupilGeometry, pupilMaterial);
+  pupilL.position.set(-0.12, 0.65, 0.75);
+  group.add(pupilL);
+  
+  const pupilR = new THREE.Mesh(pupilGeometry, pupilMaterial);
+  pupilR.position.set(0.12, 0.65, 0.75);
+  group.add(pupilR);
+  
+  // Black pupils
+  const blackPupilGeom = new THREE.SphereGeometry(0.025, 8, 8);
+  const blackPupilMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+  
+  const blackL = new THREE.Mesh(blackPupilGeom, blackPupilMat);
+  blackL.position.set(-0.12, 0.65, 0.78);
+  group.add(blackL);
+  
+  const blackR = new THREE.Mesh(blackPupilGeom, blackPupilMat);
+  blackR.position.set(0.12, 0.65, 0.78);
+  group.add(blackR);
+  
+  // Nose
+  const noseGeometry = new THREE.SphereGeometry(0.04, 8, 8);
+  const noseMaterial = new THREE.MeshStandardMaterial({ color: 0xFFB6C1 });
+  const nose = new THREE.Mesh(noseGeometry, noseMaterial);
+  nose.scale.set(1.2, 0.8, 0.8);
+  nose.position.set(0, 0.55, 0.75);
+  group.add(nose);
+  
+  // Legs
+  const legGeometry = new THREE.CylinderGeometry(0.08, 0.1, 0.3, 8);
+  const legMaterial = hasWhitePaws ? 
+    new THREE.MeshStandardMaterial({ color: 0xFFFFFF, roughness: 0.8 }) : 
+    bodyMaterial;
+  
+  const legPositions = [
+    [-0.25, 0.15, 0.3],
+    [0.25, 0.15, 0.3],
+    [-0.25, 0.15, -0.2],
+    [0.25, 0.15, -0.2]
+  ];
+  
+  legPositions.forEach((pos, i) => {
+    const useLegMaterial = (hasWhitePaws || (name === 'Tiny' && i === 0)) ? 
+      new THREE.MeshStandardMaterial({ color: 0xFFFFFF, roughness: 0.8 }) : 
+      bodyMaterial;
+    const leg = new THREE.Mesh(legGeometry, name === 'Tiny' && i === 0 ? 
+      new THREE.MeshStandardMaterial({ color: 0xFFFFFF, roughness: 0.8 }) : bodyMaterial);
+    leg.position.set(...pos);
+    group.add(leg);
+  });
+  
+  // Tail - curved
+  const tailCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, 0.35, -0.5),
+    new THREE.Vector3(0, 0.5, -0.7),
+    new THREE.Vector3(0.1, 0.7, -0.6),
+    new THREE.Vector3(0.15, 0.8, -0.4)
+  ]);
+  const tailGeometry = new THREE.TubeGeometry(tailCurve, 20, 0.06, 8, false);
+  const tail = new THREE.Mesh(tailGeometry, bodyMaterial);
+  group.add(tail);
   
   group.position.set(x, y, z);
   group.userData = { name, isInteractable: true };
@@ -735,6 +968,107 @@ function showNarrationSequence(narrations, callback) {
   showNext();
 }
 
+// Cutscene system for character introductions
+function showCutscene(cutsceneData, callback) {
+  GameState.isInDialogue = true;
+  let currentIndex = 0;
+  
+  const cutsceneBox = document.getElementById('cutscene-box');
+  if (!cutsceneBox) {
+    // Create cutscene box if it doesn't exist
+    const box = document.createElement('div');
+    box.id = 'cutscene-box';
+    box.innerHTML = `
+      <div class="cutscene-content">
+        <div class="cutscene-icon" id="cutscene-icon"></div>
+        <div class="cutscene-name" id="cutscene-name"></div>
+        <div class="cutscene-title" id="cutscene-title"></div>
+        <div class="cutscene-desc" id="cutscene-desc"></div>
+      </div>
+      <div class="cutscene-continue">Tap or press Space to continue</div>
+    `;
+    box.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.95);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      color: white;
+      font-family: 'Nunito', sans-serif;
+    `;
+    document.body.appendChild(box);
+  }
+  
+  function showNext() {
+    if (currentIndex >= cutsceneData.length) {
+      const box = document.getElementById('cutscene-box');
+      if (box) box.remove();
+      GameState.isInDialogue = false;
+      if (callback) callback();
+      return;
+    }
+    
+    const scene = cutsceneData[currentIndex];
+    const box = document.getElementById('cutscene-box');
+    
+    if (scene.type === 'scene') {
+      box.innerHTML = `
+        <div style="text-align: center; max-width: 600px; padding: 40px;">
+          <p style="font-size: 28px; line-height: 1.8; font-style: italic; color: #ccc;">
+            ${scene.text}
+          </p>
+        </div>
+        <div style="font-size: 14px; color: #666; margin-top: 30px;">Tap or press Space to continue</div>
+      `;
+    } else if (scene.type === 'character_intro') {
+      const isPlayer = scene.isPlayer;
+      box.innerHTML = `
+        <div style="text-align: center; padding: 40px;">
+          <div style="font-size: 100px; margin-bottom: 20px; ${isPlayer ? 'animation: glow 1s ease-in-out infinite alternate;' : ''}">${scene.icon}</div>
+          <div style="font-size: 48px; font-weight: 900; color: ${isPlayer ? '#87CEEB' : '#fff'}; margin-bottom: 10px; font-family: 'Creepster', cursive;">${scene.name}</div>
+          <div style="font-size: 20px; color: ${isPlayer ? '#87CEEB' : '#e94560'}; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 3px;">${scene.title}</div>
+          <div style="font-size: 18px; color: #aaa; max-width: 400px; margin: 0 auto;">${scene.description}</div>
+        </div>
+        <div style="font-size: 14px; color: #666; margin-top: 30px;">Tap or press Space to continue</div>
+        <style>
+          @keyframes glow {
+            from { text-shadow: 0 0 20px rgba(135, 206, 235, 0.5); }
+            to { text-shadow: 0 0 40px rgba(135, 206, 235, 0.9), 0 0 60px rgba(135, 206, 235, 0.5); }
+          }
+        </style>
+      `;
+    }
+    
+    GameData.SoundManager.playDialogue();
+    currentIndex++;
+  }
+  
+  const handleCutsceneContinue = (e) => {
+    if (e.type === 'keydown' && e.code !== 'Space') return;
+    if (currentIndex < cutsceneData.length) {
+      showNext();
+    } else {
+      document.removeEventListener('click', handleCutsceneContinue);
+      document.removeEventListener('keydown', handleCutsceneContinue);
+      const box = document.getElementById('cutscene-box');
+      if (box) box.remove();
+      GameState.isInDialogue = false;
+      if (callback) callback();
+    }
+  };
+  
+  document.addEventListener('click', handleCutsceneContinue);
+  document.addEventListener('keydown', handleCutsceneContinue);
+  
+  showNext();
+}
+
 // Chapter system
 function startChapter(chapterNum) {
   GameState.chapter = chapterNum;
@@ -752,45 +1086,51 @@ function startChapter(chapterNum) {
   // Create environment
   createEnvironment(chapterNum);
   
-  // Reset player position
-  camera.position.set(0, 0.5, 5);
-  camera.rotation.set(0, 0, 0);
+  // Player starts in basket for chapter 1 (hiding spot for hide and seek)
+  if (chapterNum === 1) {
+    // Start by the edge of the couch (hiding spot)
+    camera.position.set(-8.5, 0.4, -9);
+    camera.rotation.set(0, Math.PI / 4, 0); // Looking toward room
+  } else {
+    camera.position.set(0, 0.5, 5);
+    camera.rotation.set(0, 0, 0);
+  }
   
   setTimeout(() => {
     chapterOverlay.classList.add('hidden');
     
-    // Get intro narrations for this chapter
-    const introKey = `CHAPTER_${chapterNum}_DIALOGUE`;
-    const chapterDialogue = window[introKey] || {};
-    
-    // Start with narration or dialogue based on chapter
+    // Chapter 1: Show opening cutscene with character introductions
     if (chapterNum === 1) {
-      showNarrationSequence(GameData.ALL_DIALOGUE.intro_narration || [
-        "You open your eyes slowly...",
-        "Warm sunlight filters through a window. You're in a cozy Twoleg house.",
-        "You are Tiny - a small black kit with one white paw.",
-        "Your littermates, Socks and Ruby, are nearby."
-      ], () => {
-        showDialogue('socks_bully_1');
+      // Show the opening cutscene first
+      showCutscene(GameData.OPENING_CUTSCENE, () => {
+        // Then show the hide and seek narration
+        showNarrationSequence(GameData.ALL_DIALOGUE.intro_narration || [
+          "You press yourself against the edge of the couch, trying to be invisible...",
+          "Your heart pounds with excitement. This is hide and seek!",
+          "You can hear Socks counting somewhere in the house...",
+          "\"...eight... nine... TEN! Ready or not, here I come!\""
+        ], () => {
+          showDialogue('hide_seek_start');
+        });
       });
     } else if (chapterNum === 2) {
-      showNarrationSequence(CHAPTER_2_DIALOGUE.intro_narration, () => {
+      showNarrationSequence(GameData.ALL_DIALOGUE.intro_narration || [], () => {
         showDialogue('socks_secret');
       });
     } else if (chapterNum === 3) {
-      showNarrationSequence(CHAPTER_3_DIALOGUE.intro_narration, () => {
+      showNarrationSequence(GameData.ALL_DIALOGUE.intro_narration || [], () => {
         showDialogue('forest_edge');
       });
     } else if (chapterNum === 6) {
-      showNarrationSequence(CHAPTER_6_DIALOGUE.intro_narration, () => {
+      showNarrationSequence(GameData.ALL_DIALOGUE.intro_narration || [], () => {
         showDialogue('siblings_see_scars');
       });
     } else if (chapterNum === 7) {
-      showNarrationSequence(CHAPTER_7_DIALOGUE.intro_narration, () => {
+      showNarrationSequence(GameData.ALL_DIALOGUE.intro_narration || [], () => {
         showDialogue('alley_intro');
       });
     } else if (chapterNum === 8) {
-      showNarrationSequence(CHAPTER_8_DIALOGUE.intro_narration, () => {
+      showNarrationSequence(GameData.ALL_DIALOGUE.intro_narration || [], () => {
         showDialogue('final_speech');
       });
     }
