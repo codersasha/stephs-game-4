@@ -181,31 +181,31 @@
       </div>
     </div>
 
-    <!-- Action Buttons (always visible) -->
+    <!-- Action Buttons (Switch-style) -->
     <div id="action-buttons">
       <div class="action-buttons-row">
         <button class="action-btn-game" id="btn-sit" title="Sit Down">
-          <span class="btn-icon">🐱</span>
+          <span class="btn-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4c1.5 0 3 1.5 3 3s-1.5 3-3 3-3-1.5-3-3 1.5-3 3-3zm0 14c-4 0-7-1.5-7-3v-2c0-1.5 3-3 7-3s7 1.5 7 3v2c0 1.5-3 3-7 3z"/></svg></span>
           <span class="btn-label">Sit</span>
         </button>
         <button class="action-btn-game" id="btn-lie" title="Lie Down">
-          <span class="btn-icon">😴</span>
+          <span class="btn-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M4 12h16v2H4v-2zm2-4h12c1 0 2 .5 2 1.5V11H4V9.5C4 8.5 5 8 6 8zm0 8h12v2H6v-2z"/></svg></span>
           <span class="btn-label">Lie Down</span>
         </button>
         <button class="action-btn-game" id="btn-jump" title="Jump">
-          <span class="btn-icon">⬆️</span>
+          <span class="btn-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg></span>
           <span class="btn-label">Jump</span>
         </button>
         <button class="action-btn-game" id="btn-meow" title="Meow!">
-          <span class="btn-icon">🔊</span>
+          <span class="btn-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg></span>
           <span class="btn-label">Meow</span>
         </button>
         <button class="action-btn-game" id="btn-emotions" title="Show Emotions">
-          <span class="btn-icon">😺</span>
+          <span class="btn-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-4-8c.83 0 1.5-.67 1.5-1.5S8.83 9 8 9s-1.5.67-1.5 1.5S7.17 12 8 12zm8 0c.83 0 1.5-.67 1.5-1.5S16.83 9 16 9s-1.5.67-1.5 1.5.67 1.5 1.5 1.5zm-4 5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/></svg></span>
           <span class="btn-label">Emotions</span>
         </button>
         <button class="action-btn-game" id="btn-help" title="Help - How to Play">
-          <span class="btn-icon">❓</span>
+          <span class="btn-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg></span>
           <span class="btn-label">Help</span>
         </button>
       </div>
@@ -260,13 +260,13 @@
       </div>
     </div>
 
-    <!-- Help Panel - Shows all controls -->
+    <!-- Help Panel - Switch Style -->
     <div id="help-panel" class="hidden">
       <div class="help-panel-content">
-        <h2>🐱 How to Play</h2>
+        <h2>How to Play</h2>
         
         <div class="help-section">
-          <h3>🎮 Moving Around</h3>
+          <h3>Movement</h3>
           <div class="help-item"><kbd>W</kbd> Walk forward</div>
           <div class="help-item"><kbd>A</kbd> Walk left</div>
           <div class="help-item"><kbd>S</kbd> Walk backwards</div>
@@ -276,38 +276,40 @@
         </div>
 
         <div class="help-section">
-          <h3>🐾 Actions</h3>
-          <div class="help-item"><kbd>Space</kbd> or <strong>Jump button</strong> - Jump up</div>
-          <div class="help-item"><kbd>C</kbd> or <strong>Sit button</strong> - Sit down</div>
-          <div class="help-item"><kbd>X</kbd> or <strong>Lie Down button</strong> - Lie down and rest</div>
-          <div class="help-item"><kbd>Q</kbd> or <strong>Meow button</strong> - Meow!</div>
-          <div class="help-item"><kbd>E</kbd> - Talk to other cats</div>
+          <h3>Actions</h3>
+          <div class="help-item"><kbd>Space</kbd> Jump up</div>
+          <div class="help-item"><kbd>C</kbd> Sit down</div>
+          <div class="help-item"><kbd>X</kbd> Lie down and rest</div>
+          <div class="help-item"><kbd>Q</kbd> Meow!</div>
+          <div class="help-item"><kbd>E</kbd> Talk to other cats</div>
         </div>
 
         <div class="help-section">
-          <h3>😺 Emotions</h3>
-          <div class="help-item">Click the <strong>Emotions button</strong> to show how you feel!</div>
-          <div class="help-item">Or press <kbd>1</kbd>-<kbd>6</kbd> for quick emotions</div>
+          <h3>Emotions</h3>
+          <div class="help-item">Use the Emotions button to express feelings</div>
+          <div class="help-item">Press <kbd>1</kbd>-<kbd>6</kbd> for quick emotions</div>
         </div>
 
         <div class="help-section">
-          <h3>📖 Story</h3>
-          <div class="help-item">Click or press <kbd>Space</kbd> to continue dialogue</div>
-          <div class="help-item">Click on choices to pick what to say</div>
+          <h3>Story</h3>
+          <div class="help-item"><kbd>Space</kbd> Continue dialogue</div>
+          <div class="help-item"><kbd>Click</kbd> Select choices</div>
         </div>
 
         <button class="close-help-btn" id="close-help-panel">Got it!</button>
       </div>
     </div>
 
-    <!-- Pause Menu -->
+    <!-- Pause Menu - Switch Style -->
     <div id="pause-menu" class="hidden">
       <div class="pause-content">
         <h2>Paused</h2>
-        <button class="pause-btn" id="pause-resume">Resume</button>
-        <button class="pause-btn" id="pause-controls">Controls</button>
-        <button class="pause-btn" id="pause-save">Save Game</button>
-        <button class="pause-btn" id="pause-quit">Quit to Menu</button>
+        <div class="pause-buttons">
+          <button class="pause-btn" id="pause-resume">Resume Game</button>
+          <button class="pause-btn" id="pause-controls">Controls</button>
+          <button class="pause-btn" id="pause-save">Save Progress</button>
+          <button class="pause-btn pause-btn-quit" id="pause-quit">Quit to Title</button>
+        </div>
       </div>
     </div>
 
