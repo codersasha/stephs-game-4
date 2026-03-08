@@ -41,7 +41,8 @@ const battleScreen = document.getElementById('battle-screen');
 const pauseMenu = document.getElementById('pause-menu');
 const controlsHelp = document.getElementById('controls-help');
 const emotionDisplay = document.getElementById('emotion-display');
-const emoteWheel = document.getElementById('emote-wheel');
+const emotionsPanel = document.getElementById('emotions-panel');
+const helpPanel = document.getElementById('help-panel');
 const mobileControls = document.getElementById('mobile-controls');
 const interactHint = document.getElementById('interact-hint');
 
@@ -78,11 +79,10 @@ function init() {
   narrationBox.classList.add('hidden');
   chapterOverlay.classList.add('hidden');
   battleScreen.classList.add('hidden');
-  emoteWheel.classList.add('hidden');
   mobileControls.classList.add('hidden');
   interactHint.classList.add('hidden');
-  document.getElementById('emotions-panel').classList.add('hidden');
-  document.getElementById('help-panel').classList.add('hidden');
+  emotionsPanel.classList.add('hidden');
+  helpPanel.classList.add('hidden');
   
   simulateLoading();
   setupEventListeners();
@@ -153,16 +153,7 @@ function setupEventListeners() {
   document.addEventListener('keydown', onKeyDown);
   document.addEventListener('keyup', onKeyUp);
   
-  // Emote buttons (old wheel)
-  document.querySelectorAll('.emote-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const emote = btn.dataset.emote;
-      showEmote(emote);
-      emoteWheel.classList.add('hidden');
-    });
-  });
-  
-  // New action buttons
+  // Action buttons
   document.getElementById('btn-sit').addEventListener('click', () => {
     toggleSit();
   });
@@ -270,16 +261,6 @@ function setupMobileControls() {
     joystickActive = false;
     joystickStick.style.transform = '';
     moveForward = moveBackward = moveLeft = moveRight = false;
-  });
-  
-  document.getElementById('mobile-jump').addEventListener('touchstart', () => jump());
-  document.getElementById('mobile-interact').addEventListener('touchstart', () => interact());
-  document.getElementById('mobile-emote').addEventListener('touchstart', () => {
-    emoteWheel.classList.toggle('hidden');
-  });
-  document.getElementById('mobile-meow').addEventListener('touchstart', () => {
-    GameData.SoundManager.playMeow();
-    showEmote('meow');
   });
 }
 
