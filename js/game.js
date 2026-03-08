@@ -68,6 +68,20 @@ function init() {
   isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
              ('ontouchstart' in window);
   
+  // Make sure all screens start hidden except loading
+  titleScreen.classList.add('hidden');
+  savesScreen.classList.add('hidden');
+  gameScreen.classList.add('hidden');
+  pauseMenu.classList.add('hidden');
+  controlsHelp.classList.add('hidden');
+  dialogueBox.classList.add('hidden');
+  narrationBox.classList.add('hidden');
+  chapterOverlay.classList.add('hidden');
+  battleScreen.classList.add('hidden');
+  emoteWheel.classList.add('hidden');
+  mobileControls.classList.add('hidden');
+  interactHint.classList.add('hidden');
+  
   simulateLoading();
   setupEventListeners();
   initThreeJS();
@@ -79,7 +93,9 @@ function setupEventListeners() {
   // Title screen
   document.getElementById('start-btn').addEventListener('click', showSavesScreen);
   document.addEventListener('keydown', (e) => {
-    if (!titleScreen.classList.contains('hidden') && !loadingScreen.classList.contains('hidden')) return;
+    // Don't respond if loading screen is still visible
+    if (!loadingScreen.classList.contains('hidden')) return;
+    // If title screen is visible, go to saves
     if (!titleScreen.classList.contains('hidden')) {
       showSavesScreen();
     }
