@@ -273,6 +273,7 @@ function initThreeJS() {
   // First-person camera
   camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
   camera.position.set(0, 0.5, 0); // Low like a cat's view
+  camera.rotation.order = 'YXZ'; // Proper order for FPS camera
   
   renderer = new THREE.WebGLRenderer({ canvas: gameCanvas, antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -848,6 +849,8 @@ function updateMovement(delta) {
 
 // Mouse look (desktop)
 let isPointerLocked = false;
+let cameraPitch = 0; // Track pitch separately to prevent gimbal lock
+let cameraYaw = 0;
 
 gameCanvas.addEventListener('click', () => {
   if (!gameScreen.classList.contains('hidden') && !GameState.isInDialogue && !GameState.isPaused) {
@@ -863,9 +866,19 @@ document.addEventListener('mousemove', (e) => {
   if (!isPointerLocked) return;
   
   const sensitivity = 0.002;
-  camera.rotation.y -= e.movementX * sensitivity;
-  camera.rotation.x -= e.movementY * sensitivity;
-  camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
+  
+  // Update yaw (left/right) - no limits
+  cameraYaw -= e.movementX * sensitivity;
+  
+  // Update pitch (up/down) - clamped to prevent flipping
+  cameraPitch -= e.movementY * sensitivity;
+  const maxPitch = Math.PI / 2 - 0.1; // Stop just before straight up/down
+  cameraPitch = Math.max(-maxPitch, Math.min(maxPitch, cameraPitch));
+  
+  // Apply rotation using YXZ order to prevent gimbal lock
+  camera.rotation.order = 'YXZ';
+  camera.rotation.y = cameraYaw;
+  camera.rotation.x = cameraPitch;
 });
 
 // Actions
@@ -1400,11 +1413,17 @@ function startChapter(chapterNum) {
   if (chapterNum === 1) {
     // Start by the edge of the couch (hiding spot)
     camera.position.set(-8.5, 0.4, -9);
-    camera.rotation.set(0, Math.PI / 4, 0); // Looking toward room
+    cameraPitch = 0;
+    cameraYaw = Math.PI / 4; // Looking toward room
   } else {
     camera.position.set(0, 0.5, 5);
-    camera.rotation.set(0, 0, 0);
+    cameraPitch = 0;
+    cameraYaw = 0;
   }
+  // Apply camera rotation
+  camera.rotation.order = 'YXZ';
+  camera.rotation.x = cameraPitch;
+  camera.rotation.y = cameraYaw;
   
   setTimeout(() => {
     chapterOverlay.classList.add('hidden');
